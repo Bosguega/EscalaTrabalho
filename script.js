@@ -11,7 +11,6 @@ const botaoTrabalho = document.querySelector('.botao-cor[data-tipo="trabalho"]')
 const botaoFolga = document.querySelector('.botao-cor[data-tipo="folga"]');
 const inputCorTrabalho = document.querySelector('.cor-input[data-tipo="trabalho"]');
 const inputCorFolga = document.querySelector('.cor-input[data-tipo="folga"]');
-const escalaSelect = document.getElementById("escalaSelect");
 const modalNovaEscala = document.getElementById("modalNovaEscala");
 const cicloSelect = document.getElementById("cicloSelect");
 const anoAtualEl = document.getElementById("anoAtual");
@@ -192,26 +191,30 @@ function fecharModalNovaEscala() {
 
 // Salvar nova escala
 function salvarNovaEscala() {
-  console.log('Função salvarNovaEscala chamada');
+  console.log('===== Início da função salvarNovaEscala =====');
   
   const nomeEscala = document.getElementById("nomeEscala").value;
   const ciclo = document.getElementById("cicloNova").value.toUpperCase().replace(/[^TF]/g, '');
   
   console.log('Nome da escala:', nomeEscala);
   console.log('Ciclo:', ciclo);
+  console.log('Estado atual das escalas:', JSON.stringify(escalas));
 
   if (!nomeEscala || !ciclo) {
+    console.log('Erro: campos obrigatórios não preenchidos');
     alert("Por favor, preencha todos os campos.");
     return;
   }
 
   if (ciclo.length < 2) {
+    console.log('Erro: ciclo deve ter pelo menos 2 dias');
     alert("O ciclo deve ter pelo menos 2 dias.");
     return;
   }
 
   // Verificar se já existe uma escala com o mesmo nome
   if (escalas.some(escala => escala.nome === nomeEscala)) {
+    console.log('Erro: escala com este nome já existe');
     alert("Já existe uma escala com este nome. Por favor, escolha outro nome.");
     return;
   }
@@ -222,20 +225,39 @@ function salvarNovaEscala() {
     ciclo: ciclo
   };
 
-  console.log('Nova escala a ser adicionada:', novaEscala);
-  console.log('Escalas antes de adicionar:', escalas);
-
-  escalas.push(novaEscala);
-  salvarEscalas();
-  atualizarSelectEscalas();
-  fecharModalNovaEscala();
-
-  // Limpar campos
-  document.getElementById("nomeEscala").value = "";
-  document.getElementById("cicloNova").value = "";
+  console.log('Nova escala a ser adicionada:', JSON.stringify(novaEscala));
   
-  // Reabrir o modal de configuração
-  abrirModal();
+  // Adicionar a nova escala
+  escalas.push(novaEscala);
+  console.log('Escalas após adicionar:', JSON.stringify(escalas));
+  
+  // Salvar no localStorage
+  try {
+    localStorage.setItem('escalas', JSON.stringify(escalas));
+    console.log('Escalas salvas com sucesso no localStorage');
+    
+    // Verificar se as escalas foram realmente salvas
+    const escalasVerificacao = localStorage.getItem('escalas');
+    console.log('Escalas no localStorage:', escalasVerificacao);
+    
+    // Atualizar o select
+    atualizarSelectEscalas();
+    console.log('Select de escalas atualizado');
+    
+    // Fechar modal e limpar campos
+    fecharModalNovaEscala();
+    document.getElementById("nomeEscala").value = "";
+    document.getElementById("cicloNova").value = "";
+    
+    // Reabrir o modal de configuração
+    console.log('Reabrindo modal de configuração');
+    abrirModal();
+    
+    console.log('===== Fim da função salvarNovaEscala =====');
+  } catch (error) {
+    console.error('Erro ao salvar escalas no localStorage:', error);
+    alert('Não foi possível salvar a escala. Verifique se o armazenamento local está disponível.');
+  }
 }
 
 // Modificar a função aplicarEscala para usar o select
@@ -265,7 +287,7 @@ function aplicarEscala() {
   renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
 }
 
-// Adicionar delegação de eventos para modais
+// Adicionar delegação de eventos para modais e inputs
 document.addEventListener('click', function(event) {
   // Verificar se o clique foi em um botão dentro dos modais
   if (event.target.id === 'btnSalvarNovaEscala') {
@@ -280,6 +302,35 @@ document.addEventListener('click', function(event) {
   } else if (event.target.classList.contains('btn-cancelar') && !event.target.id) {
     console.log('Botão Cancelar modal principal clicado via delegação');
     fecharModal();
+  }
+});
+
+// Adicionar delegação de eventos para select e outros inputs
+document.addEventListener('change', function(event) {
+  if (event.target.id === 'cicloSelect') {
+    const value = event.target.value;
+    console.log('Valor selecionado no cicloSelect via delegação:', value);
+    
+    if (value === "criar") {
+      console.log('Opção de criar nova escala selecionada');
+      // Fechar o modal atual e abrir o modal de nova escala
+      fecharModal();
+      setTimeout(() => {
+        abrirModalNovaEscala();
+      }, 300); // Pequeno atraso para garantir que o modal anterior seja fechado
+    } else if (value !== "") {
+      console.log('Escala existente selecionada, índice:', value);
+      // Preencher a data inicial com a da escala selecionada (opcional)
+      try {
+        const escala = escalas[parseInt(value)];
+        console.log('Escala selecionada:', JSON.stringify(escala));
+        if (escala && escala.dataInicial) {
+          document.getElementById("dataInicial").value = escala.dataInicial;
+        }
+      } catch (error) {
+        console.error('Erro ao processar escala selecionada:', error);
+      }
+    }
   }
 });
 
@@ -402,21 +453,6 @@ document.addEventListener('DOMContentLoaded', () => {
   carregarConfiguracoes();
   carregarEscalas();
   renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
-  
-  // Adicionar event listener para o select de ciclos via delegação
-  document.addEventListener('change', function(event) {
-    if (event.target.id === 'cicloSelect') {
-      const value = event.target.value;
-      console.log('Valor selecionado no cicloSelect via delegação:', value);
-      if (value === "criar") {
-        // Fechar o modal atual e abrir o modal de nova escala
-        fecharModal();
-        setTimeout(() => {
-          abrirModalNovaEscala();
-        }, 300); // Pequeno atraso para garantir que o modal anterior seja fechado
-      }
-    }
-  });
 });
 
 // Registrar o Service Worker corrigido
