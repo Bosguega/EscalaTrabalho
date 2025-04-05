@@ -192,6 +192,12 @@ function salvarNovaEscala() {
     return;
   }
 
+  // Verificar se já existe uma escala com o mesmo nome
+  if (escalas.some(escala => escala.nome === nomeEscala)) {
+    alert("Já existe uma escala com este nome. Por favor, escolha outro nome.");
+    return;
+  }
+
   const novaEscala = {
     nome: nomeEscala,
     dataInicial: new Date().toISOString().split('T')[0], // Usar a data atual como padrão
@@ -206,6 +212,9 @@ function salvarNovaEscala() {
   // Limpar campos
   document.getElementById("nomeEscala").value = "";
   document.getElementById("cicloNova").value = "";
+  
+  // Reabrir o modal de configuração
+  abrirModal();
 }
 
 // Event listener para o select de ciclos
@@ -357,9 +366,13 @@ function renderizarCalendariosAno() {
   }
 }
 
-// Carregar escalas ao iniciar
-window.onload = () => {
+// Carregar configurações e escalas ao iniciar
+document.addEventListener('DOMContentLoaded', () => {
   carregarConfiguracoes();
   carregarEscalas();
   renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
-};
+});
+
+// Event listeners para os botões do modal de nova escala
+document.getElementById("btnSalvarNovaEscala").addEventListener("click", salvarNovaEscala);
+document.getElementById("btnCancelarNovaEscala").addEventListener("click", fecharModalNovaEscala);
