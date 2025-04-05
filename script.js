@@ -125,7 +125,20 @@ function mudarMes(delta) {
   renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
 }
 
+// Abrir modal de configuração
 function abrirModal() {
+  console.log('Abrindo modal de configuração');
+  
+  // Atualizar o select de escalas para garantir que está com os dados atualizados
+  atualizarSelectEscalas();
+  
+  // Garantir que a data inicial tenha um valor padrão, se estiver vazia
+  const dataInput = document.getElementById("dataInicial");
+  if (dataInput && !dataInput.value) {
+    dataInput.value = new Date().toISOString().split('T')[0]; // Define a data atual como padrão
+  }
+  
+  // Exibir o modal
   modalEl.style.display = "flex";
 }
 
@@ -158,24 +171,68 @@ function salvarEscalas() {
 
 // Atualizar o select de escalas
 function atualizarSelectEscalas() {
-  // Atualizar o select no modal de configuração
-  cicloSelect.innerHTML = '<option value="">Selecione uma escala</option>';
-  escalas.forEach((escala, index) => {
-    const option = document.createElement('option');
-    option.value = index;
-    option.textContent = escala.nome;
-    cicloSelect.appendChild(option);
-  });
+  console.log('Atualizando select de escalas');
+  
+  // Verificar se o elemento cicloSelect existe
+  if (!cicloSelect) {
+    console.error('Erro: cicloSelect não encontrado!');
+    return;
+  }
+  
+  // Limpar o conteúdo atual
+  cicloSelect.innerHTML = '';
+  
+  // Adicionar a opção padrão
+  const defaultOption = document.createElement('option');
+  defaultOption.value = "";
+  defaultOption.textContent = "Selecione uma escala";
+  cicloSelect.appendChild(defaultOption);
+  
+  // Adicionar as escalas existentes
+  if (escalas && escalas.length > 0) {
+    console.log(`Adicionando ${escalas.length} escalas ao select`);
+    escalas.forEach((escala, index) => {
+      const option = document.createElement('option');
+      option.value = index;
+      option.textContent = escala.nome;
+      cicloSelect.appendChild(option);
+    });
+  } else {
+    console.log('Não há escalas para adicionar ao select');
+  }
   
   // Adicionar opção para criar nova escala
   const criarOption = document.createElement('option');
   criarOption.value = "criar";
   criarOption.textContent = "+ Criar Nova Escala";
   cicloSelect.appendChild(criarOption);
+  
+  console.log('Select atualizado com sucesso. Opções:', cicloSelect.options.length);
 }
 
-// Abrir modal de nova escala
-function abrirModalNovaEscala() {
+// Função para garantir que o modal de nova escala seja aberto
+function handleCriarNovaEscala() {
+  console.log("Iniciando processo para criar nova escala");
+  
+  // Verificar se o modal existe
+  if (!modalNovaEscala) {
+    console.error("Erro: Modal de nova escala não encontrado!");
+    alert("Erro ao abrir o formulário de nova escala. Por favor, recarregue a página.");
+    return;
+  }
+  
+  // Limpar os campos
+  const nomeInput = document.getElementById("nomeEscala");
+  const cicloInput = document.getElementById("cicloNova");
+  
+  if (nomeInput) nomeInput.value = "";
+  if (cicloInput) cicloInput.value = "";
+  
+  // Fechar o modal de configuração primeiro
+  fecharModal();
+  
+  // Abrir o modal de nova escala
+  console.log("Abrindo modal de nova escala");
   modalNovaEscala.style.display = "flex";
 }
 
@@ -193,36 +250,45 @@ function fecharModalNovaEscala() {
 function salvarNovaEscala() {
   console.log('===== Início da função salvarNovaEscala =====');
   
-  const nomeEscala = document.getElementById("nomeEscala").value;
-  const ciclo = document.getElementById("cicloNova").value.toUpperCase().replace(/[^TF]/g, '');
+  const nomeEscala = document.getElementById("nomeEscala");
+  const cicloNova = document.getElementById("cicloNova");
   
-  console.log('Nome da escala:', nomeEscala);
-  console.log('Ciclo:', ciclo);
+  if (!nomeEscala || !cicloNova) {
+    console.error('Elementos de formulário não encontrados!');
+    alert('Erro ao salvar escala. Por favor, recarregue a página.');
+    return;
+  }
+  
+  const nomeEscalaValue = nomeEscala.value;
+  const cicloValue = cicloNova.value.toUpperCase().replace(/[^TF]/g, '');
+  
+  console.log('Nome da escala:', nomeEscalaValue);
+  console.log('Ciclo:', cicloValue);
   console.log('Estado atual das escalas:', JSON.stringify(escalas));
 
-  if (!nomeEscala || !ciclo) {
+  if (!nomeEscalaValue || !cicloValue) {
     console.log('Erro: campos obrigatórios não preenchidos');
     alert("Por favor, preencha todos os campos.");
     return;
   }
 
-  if (ciclo.length < 2) {
+  if (cicloValue.length < 2) {
     console.log('Erro: ciclo deve ter pelo menos 2 dias');
     alert("O ciclo deve ter pelo menos 2 dias.");
     return;
   }
 
   // Verificar se já existe uma escala com o mesmo nome
-  if (escalas.some(escala => escala.nome === nomeEscala)) {
+  if (escalas.some(escala => escala.nome === nomeEscalaValue)) {
     console.log('Erro: escala com este nome já existe');
     alert("Já existe uma escala com este nome. Por favor, escolha outro nome.");
     return;
   }
 
   const novaEscala = {
-    nome: nomeEscala,
+    nome: nomeEscalaValue,
     dataInicial: new Date().toISOString().split('T')[0], // Usar a data atual como padrão
-    ciclo: ciclo
+    ciclo: cicloValue
   };
 
   console.log('Nova escala a ser adicionada:', JSON.stringify(novaEscala));
@@ -246,8 +312,6 @@ function salvarNovaEscala() {
     
     // Fechar modal e limpar campos
     fecharModalNovaEscala();
-    document.getElementById("nomeEscala").value = "";
-    document.getElementById("cicloNova").value = "";
     
     // Reabrir o modal de configuração
     console.log('Reabrindo modal de configuração');
@@ -287,19 +351,27 @@ function aplicarEscala() {
   renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
 }
 
+// Função original para abrir o modal de nova escala
+function abrirModalNovaEscala() {
+  handleCriarNovaEscala();
+}
+
 // Adicionar delegação de eventos para modais e inputs
 document.addEventListener('click', function(event) {
+  const target = event.target;
+  console.log('Clique detectado em:', target.tagName, target.id || target.className);
+  
   // Verificar se o clique foi em um botão dentro dos modais
-  if (event.target.id === 'btnSalvarNovaEscala') {
+  if (target.id === 'btnSalvarNovaEscala') {
     console.log('Botão Salvar Nova Escala clicado via delegação');
     salvarNovaEscala();
-  } else if (event.target.id === 'btnCancelarNovaEscala') {
+  } else if (target.id === 'btnCancelarNovaEscala') {
     console.log('Botão Cancelar Nova Escala clicado via delegação');
     fecharModalNovaEscala();
-  } else if (event.target.classList.contains('btn-aplicar')) {
+  } else if (target.classList.contains('btn-aplicar')) {
     console.log('Botão Aplicar clicado via delegação');
     aplicarEscala();
-  } else if (event.target.classList.contains('btn-cancelar') && !event.target.id) {
+  } else if (target.classList.contains('btn-cancelar') && !target.id) {
     console.log('Botão Cancelar modal principal clicado via delegação');
     fecharModal();
   }
@@ -313,11 +385,8 @@ document.addEventListener('change', function(event) {
     
     if (value === "criar") {
       console.log('Opção de criar nova escala selecionada');
-      // Fechar o modal atual e abrir o modal de nova escala
-      fecharModal();
-      setTimeout(() => {
-        abrirModalNovaEscala();
-      }, 300); // Pequeno atraso para garantir que o modal anterior seja fechado
+      // Chamar a função dedicada
+      handleCriarNovaEscala();
     } else if (value !== "") {
       console.log('Escala existente selecionada, índice:', value);
       // Preencher a data inicial com a da escala selecionada (opcional)
@@ -448,11 +517,51 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Inicializar a data atual
   dataAtual = new Date();
+  console.log('Data atual inicializada:', dataAtual.toISOString());
   
-  // Carregar configurações e renderizar calendário
+  // Verificar elementos críticos
+  if (!cicloSelect) {
+    console.error('ERRO CRÍTICO: cicloSelect não encontrado na inicialização!');
+  } else {
+    console.log('cicloSelect encontrado com sucesso');
+  }
+  
+  if (!modalNovaEscala) {
+    console.error('ERRO CRÍTICO: modalNovaEscala não encontrado na inicialização!');
+  } else {
+    console.log('modalNovaEscala encontrado com sucesso');
+  }
+  
+  // Carregar configurações
   carregarConfiguracoes();
+  console.log('Configurações carregadas');
+  
+  // Carregar escalas
   carregarEscalas();
+  console.log('Escalas carregadas:', escalas.length);
+  
+  // Atualizar select explicitamente
+  atualizarSelectEscalas();
+  
+  // Renderizar calendário
   renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
+  console.log('Calendário renderizado');
+  
+  console.log('Inicialização concluída');
+});
+
+// Verificação adicional para debug
+window.addEventListener('load', () => {
+  // Verificar conteúdo do select após carregamento completo
+  console.log('Estado do select após carregamento completo:');
+  if (cicloSelect) {
+    console.log('Número de opções:', cicloSelect.options.length);
+    for (let i = 0; i < cicloSelect.options.length; i++) {
+      console.log(`Opção ${i}:`, cicloSelect.options[i].value, cicloSelect.options[i].textContent);
+    }
+  } else {
+    console.error('cicloSelect não encontrado no evento load!');
+  }
 });
 
 // Registrar o Service Worker corrigido
@@ -468,3 +577,16 @@ if ('serviceWorker' in navigator) {
       });
   });
 }
+
+// Adicionar verificação e log quando a página carregar
+window.addEventListener('load', () => {
+  console.log('Página carregada completamente');
+  console.log('Elementos do modal nova escala:', {
+    modal: modalNovaEscala ? 'existe' : 'não existe',
+    btnSalvar: document.getElementById("btnSalvarNovaEscala") ? 'existe' : 'não existe',
+    btnCancelar: document.getElementById("btnCancelarNovaEscala") ? 'existe' : 'não existe',
+    inputNome: document.getElementById("nomeEscala") ? 'existe' : 'não existe',
+    inputCiclo: document.getElementById("cicloNova") ? 'existe' : 'não existe'
+  });
+  console.log('Escalas carregadas:', escalas);
+});
