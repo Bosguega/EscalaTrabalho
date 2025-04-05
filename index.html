@@ -124,7 +124,7 @@
       <label for="nomeEscala">Nome da Escala:</label>
       <input type="text" id="nomeEscala" placeholder="Ex: Escala 4x2" maxlength="30" required>
       <label for="cicloNova">Ciclo (T para trabalho, F para folga):</label>
-      <input type="text" id="cicloNova" placeholder="Ex: TTTTFF" maxlength="20" required>
+      <input type="text" id="cicloNova" placeholder="Ex: TTTTFF" maxlength="20" style="text-transform: uppercase;" pattern="[TF]+" title="Apenas as letras T e F são permitidas" required>
       <div class="modal-buttons">
         <button id="btnCancelarNovaEscala" class="btn-cancelar">Cancelar</button>
         <button id="btnSalvarNovaEscala" class="btn-salvar">Salvar</button>

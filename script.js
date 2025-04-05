@@ -197,6 +197,12 @@ function atualizarSelectEscalas() {
       option.textContent = escala.nome;
       cicloSelect.appendChild(option);
     });
+
+    // Após as escalas, adicionar opção para gerenciar escalas
+    const gerenciarOption = document.createElement('option');
+    gerenciarOption.value = "gerenciar";
+    gerenciarOption.textContent = "⚙️ Gerenciar Escalas";
+    cicloSelect.appendChild(gerenciarOption);
   } else {
     console.log('Não há escalas para adicionar ao select');
   }
@@ -259,22 +265,23 @@ function salvarNovaEscala() {
     return;
   }
   
-  const nomeEscalaValue = nomeEscala.value;
+  const nomeEscalaValue = nomeEscala.value.trim();
+  // O valor já deve estar filtrado para conter apenas T e F, mas vamos garantir
   const cicloValue = cicloNova.value.toUpperCase().replace(/[^TF]/g, '');
   
   console.log('Nome da escala:', nomeEscalaValue);
   console.log('Ciclo:', cicloValue);
   console.log('Estado atual das escalas:', JSON.stringify(escalas));
 
-  if (!nomeEscalaValue || !cicloValue) {
-    console.log('Erro: campos obrigatórios não preenchidos');
-    alert("Por favor, preencha todos os campos.");
+  if (!nomeEscalaValue) {
+    console.log('Erro: nome da escala não preenchido');
+    alert("Por favor, preencha o nome da escala.");
     return;
   }
 
-  if (cicloValue.length < 2) {
+  if (!cicloValue || cicloValue.length < 2) {
     console.log('Erro: ciclo deve ter pelo menos 2 dias');
-    alert("O ciclo deve ter pelo menos 2 dias.");
+    alert("O ciclo deve ter pelo menos 2 dias com caracteres T ou F.");
     return;
   }
 
@@ -387,6 +394,9 @@ document.addEventListener('change', function(event) {
       console.log('Opção de criar nova escala selecionada');
       // Chamar a função dedicada
       handleCriarNovaEscala();
+    } else if (value === "gerenciar") {
+      console.log('Opção de gerenciar escalas selecionada');
+      abrirModalGerenciarEscalas();
     } else if (value !== "") {
       console.log('Escala existente selecionada, índice:', value);
       // Preencher a data inicial com a da escala selecionada (opcional)
@@ -532,6 +542,40 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('modalNovaEscala encontrado com sucesso');
   }
   
+  // Adicionar validação para o campo de ciclo
+  const cicloInput = document.getElementById('cicloNova');
+  if (cicloInput) {
+    // Validar durante digitação
+    cicloInput.addEventListener('input', function(e) {
+      // Converter para maiúsculo e manter apenas T e F
+      let valorAtual = e.target.value.toUpperCase();
+      let valorLimpo = valorAtual.replace(/[^TF]/g, '');
+      
+      // Se o valor foi modificado, atualizar o campo
+      if (valorAtual !== valorLimpo) {
+        e.target.value = valorLimpo;
+      }
+    });
+    
+    // Validar também no keydown para capturar antes da inserção
+    cicloInput.addEventListener('keydown', function(e) {
+      // Permitir teclas de controle (backspace, delete, setas, etc)
+      if (e.ctrlKey || e.metaKey || e.key.length > 1) {
+        return;
+      }
+      
+      // Converter a tecla para maiúsculo e verificar se é T ou F
+      const key = e.key.toUpperCase();
+      if (key !== 'T' && key !== 'F') {
+        e.preventDefault();
+      }
+    });
+    
+    console.log('Validação adicionada ao campo de ciclo');
+  } else {
+    console.error('Campo de ciclo não encontrado!');
+  }
+  
   // Carregar configurações
   carregarConfiguracoes();
   console.log('Configurações carregadas');
@@ -590,3 +634,113 @@ window.addEventListener('load', () => {
   });
   console.log('Escalas carregadas:', escalas);
 });
+
+// Função para remover uma escala
+function removerEscala(index) {
+  console.log(`Removendo escala de índice ${index}`);
+  
+  // Verificar se o índice é válido
+  if (index < 0 || index >= escalas.length) {
+    console.error(`Índice inválido: ${index}`);
+    return false;
+  }
+  
+  // Obter o nome da escala que será removida
+  const nomeEscala = escalas[index].nome;
+  
+  // Remover a escala do array
+  escalas.splice(index, 1);
+  
+  // Salvar o array atualizado no localStorage
+  try {
+    localStorage.setItem('escalas', JSON.stringify(escalas));
+    console.log('Escalas atualizadas no localStorage após remoção');
+    
+    // Atualizar o select
+    atualizarSelectEscalas();
+    
+    // Informar ao usuário
+    alert(`A escala "${nomeEscala}" foi removida com sucesso.`);
+    return true;
+  } catch (error) {
+    console.error('Erro ao salvar escalas após remoção:', error);
+    alert('Não foi possível remover a escala. Tente novamente.');
+    return false;
+  }
+}
+
+// Função para abrir modal de gerenciamento de escalas
+function abrirModalGerenciarEscalas() {
+  console.log('Abrindo modal para gerenciar escalas');
+  
+  // Fechar o modal de configuração
+  fecharModal();
+  
+  // Criar um modal temporário para gerenciar escalas
+  const modalGerenciar = document.createElement('div');
+  modalGerenciar.className = 'modal';
+  modalGerenciar.style.display = 'flex';
+  modalGerenciar.id = 'modalGerenciarEscalas';
+  
+  // Conteúdo do modal
+  modalGerenciar.innerHTML = `
+    <div class="modal-content">
+      <h3>Gerenciar Escalas</h3>
+      <div id="listaEscalas" class="lista-escalas">
+        ${escalas.length > 0 ? '' : '<p>Não há escalas cadastradas.</p>'}
+      </div>
+      <div class="modal-buttons">
+        <button class="btn-cancelar" id="btnFecharGerenciamento">Voltar</button>
+      </div>
+    </div>
+  `;
+  
+  // Adicionar o modal ao DOM
+  document.body.appendChild(modalGerenciar);
+  
+  // Adicionar as escalas à lista
+  const listaEscalas = document.getElementById('listaEscalas');
+  if (listaEscalas && escalas.length > 0) {
+    escalas.forEach((escala, index) => {
+      const itemEscala = document.createElement('div');
+      itemEscala.className = 'item-escala';
+      itemEscala.innerHTML = `
+        <div class="info-escala">
+          <span class="nome-escala">${escala.nome}</span>
+          <span class="ciclo-escala">Ciclo: ${escala.ciclo}</span>
+        </div>
+        <button class="btn-remover" data-index="${index}">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
+            <line x1="10" y1="11" x2="10" y2="17"></line>
+            <line x1="14" y1="11" x2="14" y2="17"></line>
+          </svg>
+        </button>
+      `;
+      listaEscalas.appendChild(itemEscala);
+    });
+  }
+  
+  // Adicionar event listeners
+  document.getElementById('btnFecharGerenciamento').addEventListener('click', function() {
+    document.body.removeChild(modalGerenciar);
+    abrirModal();
+  });
+  
+  // Event listener para os botões de remover
+  modalGerenciar.addEventListener('click', function(event) {
+    if (event.target.closest('.btn-remover')) {
+      const botao = event.target.closest('.btn-remover');
+      const index = parseInt(botao.getAttribute('data-index'));
+      
+      if (confirm(`Tem certeza que deseja remover a escala "${escalas[index].nome}"?`)) {
+        if (removerEscala(index)) {
+          // Se removeu com sucesso, recriar a lista
+          document.body.removeChild(modalGerenciar);
+          abrirModalGerenciarEscalas();
+        }
+      }
+    }
+  });
+}
