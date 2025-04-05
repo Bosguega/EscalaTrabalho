@@ -241,14 +241,13 @@ function salvarNovaEscala() {
 // Event listener para o select de ciclos
 cicloSelect.addEventListener('change', (e) => {
   const value = e.target.value;
+  console.log('Valor selecionado no cicloSelect:', value);
   if (value === "criar") {
     // Fechar o modal atual e abrir o modal de nova escala
     fecharModal();
-    abrirModalNovaEscala();
-  } else if (value !== "") {
-    // Selecionar a escala escolhida
-    const escala = escalas[value];
-    document.getElementById("dataInicial").value = escala.dataInicial;
+    setTimeout(() => {
+      abrirModalNovaEscala();
+    }, 300); // Pequeno atraso para garantir que o modal anterior seja fechado
   }
 });
 
@@ -389,6 +388,12 @@ function renderizarCalendariosAno() {
 
 // Carregar configurações e escalas ao iniciar
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM carregado, inicializando aplicação...');
+  
+  // Inicializar a data atual
+  dataAtual = new Date();
+  
+  // Carregar configurações e renderizar calendário
   carregarConfiguracoes();
   carregarEscalas();
   renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
@@ -397,18 +402,34 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnSalvarNovaEscala = document.getElementById("btnSalvarNovaEscala");
   const btnCancelarNovaEscala = document.getElementById("btnCancelarNovaEscala");
   
-  console.log('Botão Salvar encontrado:', btnSalvarNovaEscala);
-  console.log('Botão Cancelar encontrado:', btnCancelarNovaEscala);
+  console.log('Botão Salvar encontrado:', btnSalvarNovaEscala ? 'Sim' : 'Não');
+  console.log('Botão Cancelar encontrado:', btnCancelarNovaEscala ? 'Sim' : 'Não');
   
   if (btnSalvarNovaEscala) {
     btnSalvarNovaEscala.addEventListener("click", salvarNovaEscala);
+    console.log('Event listener adicionado ao botão Salvar');
   } else {
     console.error('Botão Salvar não encontrado!');
   }
   
   if (btnCancelarNovaEscala) {
     btnCancelarNovaEscala.addEventListener("click", fecharModalNovaEscala);
+    console.log('Event listener adicionado ao botão Cancelar');
   } else {
     console.error('Botão Cancelar não encontrado!');
   }
 });
+
+// Registrar o Service Worker corrigido
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    console.log('Registrando Service Worker...');
+    navigator.serviceWorker.register('./sw.js')
+      .then(registration => {
+        console.log('ServiceWorker registrado com sucesso:', registration.scope);
+      })
+      .catch(error => {
+        console.error('Falha ao registrar o ServiceWorker:', error);
+      });
+  });
+}

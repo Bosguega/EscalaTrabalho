@@ -11,7 +11,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <link rel="manifest" href="manifest.json">
-  <link rel="apple-touch-icon" href="icons/icon-152x152.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Escala">
@@ -124,7 +124,7 @@
       <label for="nomeEscala">Nome da Escala:</label>
       <input type="text" id="nomeEscala" placeholder="Ex: Escala 4x2" maxlength="30" required>
       <label for="cicloNova">Ciclo (T para trabalho, F para folga):</label>
-      <input type="text" id="cicloNova" placeholder="Ex: TTFF" maxlength="20" required>
+      <input type="text" id="cicloNova" placeholder="Ex: TTTTFF" maxlength="20" required>
       <div class="modal-buttons">
         <button id="btnCancelarNovaEscala" class="btn-cancelar">Cancelar</button>
         <button id="btnSalvarNovaEscala" class="btn-salvar">Salvar</button>
@@ -133,19 +133,5 @@
   </div>
 
   <script src="script.js"></script>
-  <script>
-    // Registrar o Service Worker
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(registration => {
-            console.log('ServiceWorker registrado com sucesso:', registration.scope);
-          })
-          .catch(error => {
-            console.log('Falha ao registrar o ServiceWorker:', error);
-          });
-      });
-    }
-  </script>
 </body>
 </html>
