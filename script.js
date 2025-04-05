@@ -132,16 +132,29 @@ function abrirModal() {
 
 // Carregar escalas salvas
 function carregarEscalas() {
-  const escalasSalvas = localStorage.getItem('escalas');
-  if (escalasSalvas) {
-    escalas = JSON.parse(escalasSalvas);
-    atualizarSelectEscalas();
+  try {
+    const escalasSalvas = localStorage.getItem('escalas');
+    if (escalasSalvas) {
+      escalas = JSON.parse(escalasSalvas);
+      atualizarSelectEscalas();
+    } else {
+      console.log('Nenhuma escala salva encontrada');
+    }
+  } catch (error) {
+    console.error('Erro ao carregar escalas:', error);
+    escalas = []; // Inicializar com array vazio em caso de erro
   }
 }
 
 // Salvar escalas
 function salvarEscalas() {
-  localStorage.setItem('escalas', JSON.stringify(escalas));
+  try {
+    localStorage.setItem('escalas', JSON.stringify(escalas));
+    console.log('Escalas salvas com sucesso:', escalas);
+  } catch (error) {
+    console.error('Erro ao salvar escalas:', error);
+    alert('Não foi possível salvar a escala. Verifique se o armazenamento local está disponível.');
+  }
 }
 
 // Atualizar o select de escalas
@@ -179,8 +192,13 @@ function fecharModalNovaEscala() {
 
 // Salvar nova escala
 function salvarNovaEscala() {
+  console.log('Função salvarNovaEscala chamada');
+  
   const nomeEscala = document.getElementById("nomeEscala").value;
   const ciclo = document.getElementById("cicloNova").value.toUpperCase().replace(/[^TF]/g, '');
+  
+  console.log('Nome da escala:', nomeEscala);
+  console.log('Ciclo:', ciclo);
 
   if (!nomeEscala || !ciclo) {
     alert("Por favor, preencha todos os campos.");
@@ -203,6 +221,9 @@ function salvarNovaEscala() {
     dataInicial: new Date().toISOString().split('T')[0], // Usar a data atual como padrão
     ciclo: ciclo
   };
+
+  console.log('Nova escala a ser adicionada:', novaEscala);
+  console.log('Escalas antes de adicionar:', escalas);
 
   escalas.push(novaEscala);
   salvarEscalas();
@@ -371,8 +392,23 @@ document.addEventListener('DOMContentLoaded', () => {
   carregarConfiguracoes();
   carregarEscalas();
   renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
+  
+  // Event listeners para os botões do modal de nova escala
+  const btnSalvarNovaEscala = document.getElementById("btnSalvarNovaEscala");
+  const btnCancelarNovaEscala = document.getElementById("btnCancelarNovaEscala");
+  
+  console.log('Botão Salvar encontrado:', btnSalvarNovaEscala);
+  console.log('Botão Cancelar encontrado:', btnCancelarNovaEscala);
+  
+  if (btnSalvarNovaEscala) {
+    btnSalvarNovaEscala.addEventListener("click", salvarNovaEscala);
+  } else {
+    console.error('Botão Salvar não encontrado!');
+  }
+  
+  if (btnCancelarNovaEscala) {
+    btnCancelarNovaEscala.addEventListener("click", fecharModalNovaEscala);
+  } else {
+    console.error('Botão Cancelar não encontrado!');
+  }
 });
-
-// Event listeners para os botões do modal de nova escala
-document.getElementById("btnSalvarNovaEscala").addEventListener("click", salvarNovaEscala);
-document.getElementById("btnCancelarNovaEscala").addEventListener("click", fecharModalNovaEscala);
