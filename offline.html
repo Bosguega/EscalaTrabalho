@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="description" content="Aplicativo para gerenciar escalas de trabalho - Modo Offline">
+  <title>Escala de Trabalho - Offline</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cor-primaria: #2563eb;
+      --cor-secundaria: #3b82f6;
+      --cor-fundo: #f8fafc;
+      --cor-texto: #1e293b;
+      --cor-borda: #e2e8f0;
+      --sombra: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      --raio-borda: 10px;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--cor-fundo);
+      color: var(--cor-texto);
+      line-height: 1.5;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      text-align: center;
+    }
+    
+    .container {
+      max-width: 500px;
+      padding: 2rem;
+      background-color: white;
+      border-radius: var(--raio-borda);
+      box-shadow: var(--sombra);
+      margin-bottom: 2rem;
+    }
+    
+    h1 {
+      color: var(--cor-primaria);
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+    }
+    
+    p {
+      margin-bottom: 1.5rem;
+    }
+    
+    .icon {
+      font-size: 4rem;
+      color: var(--cor-primaria);
+      margin-bottom: 1.5rem;
+    }
+    
+    .btn {
+      display: inline-block;
+      background-color: var(--cor-primaria);
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: var(--raio-borda);
+      text-decoration: none;
+      font-weight: 500;
+      border: none;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    
+    .btn:hover {
+      background-color: var(--cor-secundaria);
+    }
+    
+    @media (max-width: 600px) {
+      .container {
+        width: 90%;
+        padding: 1.5rem;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="icon">
+      <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="1" y1="1" x2="23" y2="23"></line>
+        <path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"></path>
+        <path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"></path>
+        <path d="M10.71 5.05A16 16 0 0 1 22.58 9"></path>
+        <path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"></path>
+        <path d="M8.53 16.11a6 6 0 0 1 6.95 0"></path>
+        <line x1="12" y1="20" x2="12.01" y2="20"></line>
+      </svg>
+    </div>
+    <h1>Você está offline</h1>
+    <p>Parece que você não está conectado à internet. A aplicação Escala de Trabalho requer conexão para carregar completamente.</p>
+    <p>Verifique sua conexão e tente novamente.</p>
+    <button class="btn" onclick="window.location.reload()">Tentar novamente</button>
+  </div>
+</body>
+</html>

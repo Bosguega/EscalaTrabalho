@@ -6,7 +6,8 @@ const urlsToCache = [
   './script.js',
   './manifest.json',
   './icon-192.png',
-  './icon-512.png'
+  './icon-512.png',
+  './offline.html'
 ];
 
 self.addEventListener('install', event => {
@@ -53,8 +54,10 @@ self.addEventListener('fetch', event => {
           })
           .catch(error => {
             console.error('Service Worker: Fetch failed', error);
-            // You can return the offline page here if needed
-            // return caches.match('./offline.html');
+            // Retornar a página offline quando não conseguir acessar a rede
+            if (event.request.mode === 'navigate') {
+              return caches.match('./offline.html');
+            }
           });
       })
   );

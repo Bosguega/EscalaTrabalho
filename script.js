@@ -238,19 +238,6 @@ function salvarNovaEscala() {
   abrirModal();
 }
 
-// Event listener para o select de ciclos
-cicloSelect.addEventListener('change', (e) => {
-  const value = e.target.value;
-  console.log('Valor selecionado no cicloSelect:', value);
-  if (value === "criar") {
-    // Fechar o modal atual e abrir o modal de nova escala
-    fecharModal();
-    setTimeout(() => {
-      abrirModalNovaEscala();
-    }, 300); // Pequeno atraso para garantir que o modal anterior seja fechado
-  }
-});
-
 // Modificar a função aplicarEscala para usar o select
 function aplicarEscala() {
   const dataInput = document.getElementById("dataInicial").value;
@@ -277,6 +264,24 @@ function aplicarEscala() {
   fecharModal();
   renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
 }
+
+// Adicionar delegação de eventos para modais
+document.addEventListener('click', function(event) {
+  // Verificar se o clique foi em um botão dentro dos modais
+  if (event.target.id === 'btnSalvarNovaEscala') {
+    console.log('Botão Salvar Nova Escala clicado via delegação');
+    salvarNovaEscala();
+  } else if (event.target.id === 'btnCancelarNovaEscala') {
+    console.log('Botão Cancelar Nova Escala clicado via delegação');
+    fecharModalNovaEscala();
+  } else if (event.target.classList.contains('btn-aplicar')) {
+    console.log('Botão Aplicar clicado via delegação');
+    aplicarEscala();
+  } else if (event.target.classList.contains('btn-cancelar') && !event.target.id) {
+    console.log('Botão Cancelar modal principal clicado via delegação');
+    fecharModal();
+  }
+});
 
 // Função para mudar o ano
 function mudarAno(delta) {
@@ -398,26 +403,20 @@ document.addEventListener('DOMContentLoaded', () => {
   carregarEscalas();
   renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
   
-  // Event listeners para os botões do modal de nova escala
-  const btnSalvarNovaEscala = document.getElementById("btnSalvarNovaEscala");
-  const btnCancelarNovaEscala = document.getElementById("btnCancelarNovaEscala");
-  
-  console.log('Botão Salvar encontrado:', btnSalvarNovaEscala ? 'Sim' : 'Não');
-  console.log('Botão Cancelar encontrado:', btnCancelarNovaEscala ? 'Sim' : 'Não');
-  
-  if (btnSalvarNovaEscala) {
-    btnSalvarNovaEscala.addEventListener("click", salvarNovaEscala);
-    console.log('Event listener adicionado ao botão Salvar');
-  } else {
-    console.error('Botão Salvar não encontrado!');
-  }
-  
-  if (btnCancelarNovaEscala) {
-    btnCancelarNovaEscala.addEventListener("click", fecharModalNovaEscala);
-    console.log('Event listener adicionado ao botão Cancelar');
-  } else {
-    console.error('Botão Cancelar não encontrado!');
-  }
+  // Adicionar event listener para o select de ciclos via delegação
+  document.addEventListener('change', function(event) {
+    if (event.target.id === 'cicloSelect') {
+      const value = event.target.value;
+      console.log('Valor selecionado no cicloSelect via delegação:', value);
+      if (value === "criar") {
+        // Fechar o modal atual e abrir o modal de nova escala
+        fecharModal();
+        setTimeout(() => {
+          abrirModalNovaEscala();
+        }, 300); // Pequeno atraso para garantir que o modal anterior seja fechado
+      }
+    }
+  });
 });
 
 // Registrar o Service Worker corrigido
