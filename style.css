@@ -130,6 +130,15 @@ header button:hover {
   padding: 16px;
   border-radius: 12px;
   box-shadow: var(--shadow-md);
+  transition: transform 0.3s ease-in-out;
+}
+
+.calendario-mes-anterior {
+  transform: translateX(-100%);
+}
+
+.calendario-proximo-mes {
+  transform: translateX(100%);
 }
 
 .dia-semana {

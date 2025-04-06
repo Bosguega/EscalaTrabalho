@@ -177,10 +177,53 @@ function renderizarCalendario(mes, ano) {
   });
 }
 
-function mudarMes(delta) {
-  dataAtual.setMonth(dataAtual.getMonth() + delta);
-  renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
+// Variáveis para controle de arrasto
+let startX = 0;
+let endX = 0;
+
+// Função para iniciar o arrasto
+function iniciarArrasto(event) {
+  startX = event.touches ? event.touches[0].clientX : event.clientX;
 }
+
+// Função para finalizar o arrasto
+function finalizarArrasto(event) {
+  endX = event.changedTouches ? event.changedTouches[0].clientX : event.clientX;
+  const diffX = endX - startX;
+
+  if (diffX > 50) {
+    // Arrastou para a direita, mês anterior
+    mudarMes(-1);
+  } else if (diffX < -50) {
+    // Arrastou para a esquerda, próximo mês
+    mudarMes(1);
+  }
+}
+
+// Função para mudar o mês com animação
+function mudarMes(direcao) {
+  // Adicionar classe de animação
+  if (direcao === -1) {
+    calendarioEl.classList.add('calendario-proximo-mes');
+  } else if (direcao === 1) {
+    calendarioEl.classList.add('calendario-mes-anterior');
+  }
+
+  // Esperar a animação terminar antes de mudar o mês
+  setTimeout(() => {
+    dataAtual.setMonth(dataAtual.getMonth() + direcao);
+  renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
+
+    // Remover classes de animação
+    calendarioEl.classList.remove('calendario-mes-anterior', 'calendario-proximo-mes');
+  }, 300); // Tempo da animação em milissegundos
+}
+
+// Adicionar eventos de arrasto ao calendário
+calendarioEl.addEventListener('mousedown', iniciarArrasto);
+calendarioEl.addEventListener('touchstart', iniciarArrasto);
+calendarioEl.addEventListener('mouseup', finalizarArrasto);
+calendarioEl.addEventListener('touchend', finalizarArrasto);
 
 // Abrir modal de configuração
 function abrirModal() {
@@ -267,7 +310,7 @@ function atualizarSelectEscalas() {
   // Adicionar a opção para remover escalas
   const removerOption = document.createElement('option');
   removerOption.value = "remover";
-  removerOption.textContent = "🗑️ Remover Escala";
+  removerOption.textContent = "��️ Remover Escala";
   cicloSelect.appendChild(removerOption);
   
   console.log('Select atualizado com sucesso. Opções:', cicloSelect.options.length);
