@@ -30,10 +30,6 @@ const CORES_PADRAO = {
 // Estrutura para armazenar as escalas
 let escalas = [];
 
-// Variáveis para armazenar o mês e ano originais
-let mesOriginal = 0;
-let anoOriginal = 0;
-
 // Adicionar ícones de tema lado a lado
 const temaIconeClaro = document.createElement('span');
 temaIconeClaro.className = 'tema-icone';
@@ -123,7 +119,7 @@ inputCorFolga.addEventListener('input', (e) => {
 });
 
 // Função para atualizar o calendário
-function atualizarCalendario() {
+function atualizarCalendario(mes, ano) {
   const dias = document.querySelectorAll('.dia');
   dias.forEach(dia => {
     if (dia.classList.contains('trabalho')) {
@@ -310,7 +306,7 @@ function atualizarSelectEscalas() {
   // Adicionar a opção para remover escalas
   const removerOption = document.createElement('option');
   removerOption.value = "remover";
-  removerOption.textContent = "��️ Remover Escala";
+  removerOption.textContent = "🗑️ Remover Escala";
   cicloSelect.appendChild(removerOption);
   
   console.log('Select atualizado com sucesso. Opções:', cicloSelect.options.length);
@@ -422,7 +418,38 @@ function salvarNovaEscala() {
   }
 }
 
-// Modificar a função aplicarEscala para usar o select
+// Função para salvar a escala aplicada
+function salvarEscalaAplicada() {
+  const escalaAplicada = {
+    dataInicial: dataInicialEscala.toISOString(),
+    cicloEscala: cicloEscala
+  };
+  
+  try {
+    localStorage.setItem('escalaAplicada', JSON.stringify(escalaAplicada));
+    console.log('Escala aplicada salva no localStorage', escalaAplicada);
+  } catch (error) {
+    console.error('Erro ao salvar escala aplicada:', error);
+  }
+}
+
+// Função para carregar a escala aplicada
+function carregarEscalaAplicada() {
+  try {
+    const escalaAplicadaSalva = localStorage.getItem('escalaAplicada');
+    
+    if (escalaAplicadaSalva) {
+      const escalaAplicada = JSON.parse(escalaAplicadaSalva);
+      dataInicialEscala = new Date(escalaAplicada.dataInicial);
+      cicloEscala = escalaAplicada.cicloEscala;
+      console.log('Escala aplicada carregada do localStorage', escalaAplicada);
+    }
+  } catch (error) {
+    console.error('Erro ao carregar escala aplicada:', error);
+  }
+}
+
+// Modificar a função aplicarEscala para salvar a escala aplicada
 function aplicarEscala() {
   const dataInput = document.getElementById("dataInicial").value;
   const cicloValue = cicloSelect.value;
@@ -443,10 +470,14 @@ function aplicarEscala() {
   }
 
   const escala = escalas[cicloValue];
-    dataInicialEscala = new Date(dataInput);
+  dataInicialEscala = new Date(dataInput);
   cicloEscala = escala.ciclo;
+  
+  // Salvar a escala aplicada
+  salvarEscalaAplicada();
+  
   fecharModal();
-    renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
+  renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
 }
 
 // Função original para abrir o modal de nova escala
@@ -504,241 +535,111 @@ document.addEventListener('change', function(event) {
   }
 });
 
-// Função para mudar o ano
-function mudarAno(delta) {
-  // Atualizar apenas o ano atual para exibição, sem afetar o ano original
-  const anoAtual = dataAtual.getFullYear();
-  dataAtual.setFullYear(anoAtual + delta);
-  
-  // Atualizar o título com o ano atual
-  anoAtualEl.textContent = dataAtual.getFullYear();
-  
-  // Re-renderizar o calendário completo com o novo ano
-  renderizarCalendariosAno();
-}
+// Função para abrir o modal de anotações
+function abrirModalAnotacao(dia, mes, ano) {
+  const modalAnotacao = document.createElement('div');
+  modalAnotacao.className = 'modal';
+  modalAnotacao.style.display = 'flex';
+  modalAnotacao.id = 'modalAnotacao';
 
-// Função para voltar ao calendário mensal
-function voltarParaCalendario() {
-  // Restaurar o mês e ano originais
-  dataAtual.setMonth(mesOriginal);
-  dataAtual.setFullYear(anoOriginal);
-  renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
-  
-  const anoModal = document.getElementById("anoCompleto");
-  anoModal.style.display = "none";
-}
+  // Conteúdo do modal
+  modalAnotacao.innerHTML = `
+    <div class="modal-content">
+      <h3>Anotações para ${dia}/${mes + 1}/${ano}</h3>
+      <textarea id="anotacaoTexto" rows="5" style="width: 100%;"></textarea>
+      <div class="modal-buttons">
+        <button class="btn-cancelar" id="btnCancelarAnotacao">Cancelar</button>
+        <button class="btn-salvar" id="btnSalvarAnotacao">Salvar</button>
+      </div>
+    </div>
+  `;
 
-function mostrarAnoCompleto() {
-  const container = document.getElementById("calendarios-container");
-  container.innerHTML = "";
+  // Adicionar o modal ao DOM
+  document.body.appendChild(modalAnotacao);
 
-  // Armazenar o mês e ano atuais antes de mostrar o ano completo
-  mesOriginal = dataAtual.getMonth();
-  anoOriginal = dataAtual.getFullYear();
-
-  const anoModal = document.getElementById("anoCompleto");
-  anoModal.style.display = "flex";
-  
-  // Atualizar o título com o ano atual
-  anoAtualEl.textContent = dataAtual.getFullYear();
-
-  // Renderizar os calendários do ano
-  renderizarCalendariosAno();
-}
-
-// Função para renderizar os calendários do ano
-function renderizarCalendariosAno() {
-  const container = document.getElementById("calendarios-container");
-  container.innerHTML = "";
-
-  for (let i = 0; i < 12; i++) {
-    const mesEl = document.createElement("div");
-    mesEl.classList.add("mes-item");
-    
-    // Criar miniatura do calendário
-    const miniaturaCalendario = document.createElement("div");
-    miniaturaCalendario.classList.add("miniatura-calendario");
-    
-    // Adicionar dias da semana na miniatura
-    const diasSemana = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
-    diasSemana.forEach(dia => {
-      miniaturaCalendario.innerHTML += `<div class="miniatura-dia-semana">${dia}</div>`;
-    });
-
-    // Calcular e adicionar os dias do mês
-    const primeiroDia = new Date(dataAtual.getFullYear(), i, 1);
-    const ultimoDia = new Date(dataAtual.getFullYear(), i + 1, 0);
-    const diaSemanaInicio = primeiroDia.getDay();
-
-    // Adicionar dias vazios no início
-    for (let j = 0; j < diaSemanaInicio; j++) {
-      miniaturaCalendario.innerHTML += `<div class="miniatura-dia vazio"></div>`;
-    }
-
-    // Adicionar os dias do mês
-    for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
-      const data = new Date(dataAtual.getFullYear(), i, dia);
-      const diasDiferenca = Math.floor((data - dataInicialEscala) / (1000 * 60 * 60 * 24));
-      const posicao = ((diasDiferenca % cicloEscala.length) + cicloEscala.length) % cicloEscala.length;
-      const tipo = cicloEscala[posicao] === "T" ? "trabalho" : "folga";
-      
-      // Aplicar a cor diretamente no elemento
-      const cor = tipo === "trabalho" ? inputCorTrabalho.value : inputCorFolga.value;
-      const chaveAnotacao = `${dataAtual.getFullYear()}-${i}-${dia}`;
-      const temAnotacao = localStorage.getItem(chaveAnotacao);
-      miniaturaCalendario.innerHTML += `<div class="miniatura-dia ${tipo} ${temAnotacao ? 'com-anotacao' : ''}" style="background-color: ${cor}" data-dia="${dia}" data-mes="${i}" data-ano="${dataAtual.getFullYear()}">${dia}</div>`;
-    }
-
-    // Adicionar nome do mês e miniatura
-    const nomeMes = document.createElement("div");
-    nomeMes.classList.add("nome-mes");
-    nomeMes.textContent = new Date(dataAtual.getFullYear(), i, 1).toLocaleDateString("pt-BR", { month: "long" });
-    
-    mesEl.appendChild(nomeMes);
-    mesEl.appendChild(miniaturaCalendario);
-    
-    // Armazenar o índice do mês em uma variável para evitar problemas de escopo
-    const mesIndex = i;
-    
-    mesEl.onclick = () => {
-      // Definir o mês selecionado
-      dataAtual.setMonth(mesIndex);
-      renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
-      
-      // Fechar o modal
-      const anoModal = document.getElementById("anoCompleto");
-      anoModal.style.display = "none";
-    };
-    
-    container.appendChild(mesEl);
+  // Carregar anotação existente, se houver
+  const chaveAnotacao = `${ano}-${mes}-${dia}`;
+  const anotacaoSalva = localStorage.getItem(chaveAnotacao);
+  if (anotacaoSalva) {
+    document.getElementById('anotacaoTexto').value = anotacaoSalva;
   }
 
-  // Adicionar evento de clique para abrir o modal de anotações nos dias do calendário anual
-  const dias = document.querySelectorAll('.miniatura-dia');
-  dias.forEach(diaEl => {
-    diaEl.addEventListener('click', function(event) {
-      event.stopPropagation(); // Impedir que o clique no dia feche o modal do ano
-      const dia = parseInt(diaEl.getAttribute('data-dia'));
-      const mes = parseInt(diaEl.getAttribute('data-mes'));
-      const ano = parseInt(diaEl.getAttribute('data-ano'));
-      abrirModalAnotacao(dia, mes, ano);
-    });
+  // Event listeners para salvar e cancelar
+  document.getElementById('btnSalvarAnotacao').addEventListener('click', function() {
+    const textoAnotacao = document.getElementById('anotacaoTexto').value;
+    localStorage.setItem(chaveAnotacao, textoAnotacao);
+    exibirModalAlerta('Anotação salva com sucesso!');
+    document.body.removeChild(modalAnotacao);
+    
+    // Atualizar o calendário mensal
+    renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
+  });
+
+  document.getElementById('btnCancelarAnotacao').addEventListener('click', function() {
+    document.body.removeChild(modalAnotacao);
   });
 }
 
-// Carregar configurações e escalas ao iniciar
-document.addEventListener('DOMContentLoaded', () => {
-  console.log('DOM carregado, inicializando aplicação...');
-  
-  // Inicializar a data atual
-  dataAtual = new Date();
-  console.log('Data atual inicializada:', dataAtual.toISOString());
-  
-  // Verificar elementos críticos
-  if (!cicloSelect) {
-    console.error('ERRO CRÍTICO: cicloSelect não encontrado na inicialização!');
-  } else {
-    console.log('cicloSelect encontrado com sucesso');
-  }
-  
-  if (!modalNovaEscala) {
-    console.error('ERRO CRÍTICO: modalNovaEscala não encontrado na inicialização!');
-  } else {
-    console.log('modalNovaEscala encontrado com sucesso');
-  }
-  
-  // Adicionar validação para o campo de ciclo
-  const cicloInput = document.getElementById('cicloNova');
-  if (cicloInput) {
-    // Validar durante digitação
-    cicloInput.addEventListener('input', function(e) {
-      // Converter para maiúsculo e manter apenas T e F
-      let valorAtual = e.target.value.toUpperCase();
-      let valorLimpo = valorAtual.replace(/[^TF]/g, '');
-      
-      // Se o valor foi modificado, atualizar o campo
-      if (valorAtual !== valorLimpo) {
-        e.target.value = valorLimpo;
-      }
-    });
-    
-    // Validar também no keydown para capturar antes da inserção
-    cicloInput.addEventListener('keydown', function(e) {
-      // Permitir teclas de controle (backspace, delete, setas, etc)
-      if (e.ctrlKey || e.metaKey || e.key.length > 1) {
-        return;
-      }
-      
-      // Converter a tecla para maiúsculo e verificar se é T ou F
-      const key = e.key.toUpperCase();
-      if (key !== 'T' && key !== 'F') {
-        e.preventDefault();
-      }
-    });
-    
-    console.log('Validação adicionada ao campo de ciclo');
-  } else {
-    console.error('Campo de ciclo não encontrado!');
-  }
-  
-  // Carregar configurações
-  carregarConfiguracoes();
-  console.log('Configurações carregadas');
-  
-  // Carregar escalas
-  carregarEscalas();
-  console.log('Escalas carregadas:', escalas.length);
-  
-  // Atualizar select explicitamente
-  atualizarSelectEscalas();
-  
-  // Renderizar calendário
-  renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
-  console.log('Calendário renderizado');
-  
-  console.log('Inicialização concluída');
-});
+// Função para exibir um modal de confirmação
+function exibirModalConfirmacao(mensagem, onConfirmar, onCancelar) {
+  const modalConfirmacao = document.createElement('div');
+  modalConfirmacao.className = 'modal';
+  modalConfirmacao.style.display = 'flex';
+  modalConfirmacao.id = 'modalConfirmacao';
 
-// Verificação adicional para debug
-window.addEventListener('load', () => {
-  // Verificar conteúdo do select após carregamento completo
-  console.log('Estado do select após carregamento completo:');
-  if (cicloSelect) {
-    console.log('Número de opções:', cicloSelect.options.length);
-    for (let i = 0; i < cicloSelect.options.length; i++) {
-      console.log(`Opção ${i}:`, cicloSelect.options[i].value, cicloSelect.options[i].textContent);
-    }
-  } else {
-    console.error('cicloSelect não encontrado no evento load!');
-  }
-});
+  // Conteúdo do modal
+  modalConfirmacao.innerHTML = `
+    <div class="modal-content">
+      <h3>Confirmação</h3>
+      <p>${mensagem}</p>
+      <div class="modal-buttons">
+        <button class="btn-cancelar" id="btnCancelarConfirmacao">Cancelar</button>
+        <button class="btn-salvar" id="btnConfirmar">Confirmar</button>
+      </div>
+    </div>
+  `;
 
-// Registrar o Service Worker corrigido
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    console.log('Registrando Service Worker...');
-    navigator.serviceWorker.register('./sw.js')
-      .then(registration => {
-        console.log('ServiceWorker registrado com sucesso:', registration.scope);
-      })
-      .catch(error => {
-        console.error('Falha ao registrar o ServiceWorker:', error);
-      });
+  // Adicionar o modal ao DOM
+  document.body.appendChild(modalConfirmacao);
+
+  // Event listeners para confirmar e cancelar
+  document.getElementById('btnConfirmar').addEventListener('click', function() {
+    onConfirmar();
+    document.body.removeChild(modalConfirmacao);
+  });
+
+  document.getElementById('btnCancelarConfirmacao').addEventListener('click', function() {
+    if (onCancelar) onCancelar();
+    document.body.removeChild(modalConfirmacao);
   });
 }
 
-// Adicionar verificação e log quando a página carregar
-window.addEventListener('load', () => {
-  console.log('Página carregada completamente');
-  console.log('Elementos do modal nova escala:', {
-    modal: modalNovaEscala ? 'existe' : 'não existe',
-    btnSalvar: document.getElementById("btnSalvarNovaEscala") ? 'existe' : 'não existe',
-    btnCancelar: document.getElementById("btnCancelarNovaEscala") ? 'existe' : 'não existe',
-    inputNome: document.getElementById("nomeEscala") ? 'existe' : 'não existe',
-    inputCiclo: document.getElementById("cicloNova") ? 'existe' : 'não existe'
+// Função para exibir um modal de alerta
+function exibirModalAlerta(mensagem) {
+  const modalAlerta = document.createElement('div');
+  modalAlerta.className = 'modal';
+  modalAlerta.style.display = 'flex';
+  modalAlerta.id = 'modalAlerta';
+
+  // Conteúdo do modal
+  modalAlerta.innerHTML = `
+    <div class="modal-content">
+      <h3>Alerta</h3>
+      <p>${mensagem}</p>
+      <div class="modal-buttons">
+        <button class="btn-salvar" id="btnFecharAlerta">Fechar</button>
+      </div>
+    </div>
+  `;
+
+  // Adicionar o modal ao DOM
+  document.body.appendChild(modalAlerta);
+
+  // Event listener para fechar o alerta
+  document.getElementById('btnFecharAlerta').addEventListener('click', function() {
+    document.body.removeChild(modalAlerta);
   });
-  console.log('Escalas carregadas:', escalas);
-});
+}
 
 // Função para remover uma escala
 function removerEscala(index) {
@@ -834,117 +735,124 @@ function abrirModalGerenciarEscalas() {
   });
 }
 
-// Função para abrir o modal de anotações
-function abrirModalAnotacao(dia, mes, ano) {
-  const modalAnotacao = document.createElement('div');
-  modalAnotacao.className = 'modal';
-  modalAnotacao.style.display = 'flex';
-  modalAnotacao.id = 'modalAnotacao';
-
-  // Conteúdo do modal
-  modalAnotacao.innerHTML = `
-    <div class="modal-content">
-      <h3>Anotações para ${dia}/${mes + 1}/${ano}</h3>
-      <textarea id="anotacaoTexto" rows="5" style="width: 100%;"></textarea>
-      <div class="modal-buttons">
-        <button class="btn-salvar" id="btnSalvarAnotacao">Salvar</button>
-        <button class="btn-cancelar" id="btnCancelarAnotacao">Cancelar</button>
-      </div>
-    </div>
-  `;
-
-  // Adicionar o modal ao DOM
-  document.body.appendChild(modalAnotacao);
-
-  // Carregar anotação existente, se houver
-  const chaveAnotacao = `${ano}-${mes}-${dia}`;
-  const anotacaoSalva = localStorage.getItem(chaveAnotacao);
-  if (anotacaoSalva) {
-    document.getElementById('anotacaoTexto').value = anotacaoSalva;
+// Carregar configurações e escalas ao iniciar
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('DOM carregado, inicializando aplicação...');
+  
+  // Inicializar a data atual
+  dataAtual = new Date();
+  console.log('Data atual inicializada:', dataAtual.toISOString());
+  
+  // Verificar elementos críticos
+  if (!cicloSelect) {
+    console.error('ERRO CRÍTICO: cicloSelect não encontrado na inicialização!');
+  } else {
+    console.log('cicloSelect encontrado com sucesso');
   }
-
-  // Event listeners para salvar e cancelar
-  document.getElementById('btnSalvarAnotacao').addEventListener('click', function() {
-    const textoAnotacao = document.getElementById('anotacaoTexto').value;
-    localStorage.setItem(chaveAnotacao, textoAnotacao);
-    exibirModalAlerta('Anotação salva com sucesso!');
-    document.body.removeChild(modalAnotacao);
+  
+  if (!modalNovaEscala) {
+    console.error('ERRO CRÍTICO: modalNovaEscala não encontrado na inicialização!');
+  } else {
+    console.log('modalNovaEscala encontrado com sucesso');
+  }
+  
+  // Adicionar validação para o campo de ciclo
+  const cicloInput = document.getElementById('cicloNova');
+  if (cicloInput) {
+    // Validar durante digitação
+    cicloInput.addEventListener('input', function(e) {
+      // Converter para maiúsculo e manter apenas T e F
+      let valorAtual = e.target.value.toUpperCase();
+      let valorLimpo = valorAtual.replace(/[^TF]/g, '');
+      
+      // Se o valor foi modificado, atualizar o campo
+      if (valorAtual !== valorLimpo) {
+        e.target.value = valorLimpo;
+      }
+    });
     
-    // Atualizar o estilo do dia imediatamente
-    const diaEl = document.querySelector(`.miniatura-dia[data-dia='${dia}'][data-mes='${mes}'][data-ano='${ano}']`);
-    if (diaEl) {
-      diaEl.classList.add('com-anotacao');
+    // Validar também no keydown para capturar antes da inserção
+    cicloInput.addEventListener('keydown', function(e) {
+      // Permitir teclas de controle (backspace, delete, setas, etc)
+      if (e.ctrlKey || e.metaKey || e.key.length > 1) {
+        return;
+      }
+      
+      // Converter a tecla para maiúsculo e verificar se é T ou F
+      const key = e.key.toUpperCase();
+      if (key !== 'T' && key !== 'F') {
+        e.preventDefault();
+      }
+    });
+    
+    console.log('Validação adicionada ao campo de ciclo');
+  } else {
+    console.error('Campo de ciclo não encontrado!');
+  }
+  
+  // Carregar configurações
+  carregarConfiguracoes();
+  console.log('Configurações carregadas');
+  
+  // Carregar escalas
+  carregarEscalas();
+  console.log('Escalas carregadas:', escalas.length);
+  
+  // Atualizar select explicitamente
+  atualizarSelectEscalas();
+  
+  // Carregar escala aplicada
+  carregarEscalaAplicada();
+  
+  // Renderizar calendário
+  renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
+  console.log('Calendário renderizado');
+  
+  console.log('Inicialização concluída');
+});
+
+// Verificação adicional para debug
+window.addEventListener('load', () => {
+  // Verificar conteúdo do select após carregamento completo
+  console.log('Estado do select após carregamento completo:');
+  if (cicloSelect) {
+    console.log('Número de opções:', cicloSelect.options.length);
+    for (let i = 0; i < cicloSelect.options.length; i++) {
+      console.log(`Opção ${i}:`, cicloSelect.options[i].value, cicloSelect.options[i].textContent);
     }
-    
-    // Atualizar o calendário completo
-    renderizarCalendariosAno();
-    
-    // Atualizar o calendário mensal
-    renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
-  });
+  } else {
+    console.error('cicloSelect não encontrado no evento load!');
+  }
+});
 
-  document.getElementById('btnCancelarAnotacao').addEventListener('click', function() {
-    document.body.removeChild(modalAnotacao);
-  });
-}
-
-// Função para exibir um modal de confirmação
-function exibirModalConfirmacao(mensagem, onConfirmar, onCancelar) {
-  const modalConfirmacao = document.createElement('div');
-  modalConfirmacao.className = 'modal';
-  modalConfirmacao.style.display = 'flex';
-  modalConfirmacao.id = 'modalConfirmacao';
-
-  // Conteúdo do modal
-  modalConfirmacao.innerHTML = `
-    <div class="modal-content">
-      <h3>Confirmação</h3>
-      <p>${mensagem}</p>
-      <div class="modal-buttons">
-        <button class="btn-cancelar" id="btnCancelarConfirmacao">Cancelar</button>
-        <button class="btn-salvar" id="btnConfirmar">Confirmar</button>
-      </div>
-    </div>
-  `;
-
-  // Adicionar o modal ao DOM
-  document.body.appendChild(modalConfirmacao);
-
-  // Event listeners para confirmar e cancelar
-  document.getElementById('btnConfirmar').addEventListener('click', function() {
-    onConfirmar();
-    document.body.removeChild(modalConfirmacao);
-  });
-
-  document.getElementById('btnCancelarConfirmacao').addEventListener('click', function() {
-    if (onCancelar) onCancelar();
-    document.body.removeChild(modalConfirmacao);
+// Registrar o Service Worker corrigido
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    console.log('Registrando Service Worker...');
+    navigator.serviceWorker.register('./sw.js')
+      .then(registration => {
+        console.log('ServiceWorker registrado com sucesso:', registration.scope);
+      })
+      .catch(error => {
+        console.error('Falha ao registrar o ServiceWorker:', error);
+      });
   });
 }
 
-// Função para exibir um modal de alerta
-function exibirModalAlerta(mensagem) {
-  const modalAlerta = document.createElement('div');
-  modalAlerta.className = 'modal';
-  modalAlerta.style.display = 'flex';
-  modalAlerta.id = 'modalAlerta';
-
-  // Conteúdo do modal
-  modalAlerta.innerHTML = `
-    <div class="modal-content">
-      <h3>Alerta</h3>
-      <p>${mensagem}</p>
-      <div class="modal-buttons">
-        <button class="btn-salvar" id="btnFecharAlerta">Fechar</button>
-      </div>
-    </div>
-  `;
-
-  // Adicionar o modal ao DOM
-  document.body.appendChild(modalAlerta);
-
-  // Event listener para fechar o alerta
-  document.getElementById('btnFecharAlerta').addEventListener('click', function() {
-    document.body.removeChild(modalAlerta);
+// Adicionar verificação e log quando a página carregar
+window.addEventListener('load', () => {
+  console.log('Página carregada completamente');
+  console.log('Elementos do modal nova escala:', {
+    modal: modalNovaEscala ? 'existe' : 'não existe',
+    btnSalvar: document.getElementById("btnSalvarNovaEscala") ? 'existe' : 'não existe',
+    btnCancelar: document.getElementById("btnCancelarNovaEscala") ? 'existe' : 'não existe',
+    inputNome: document.getElementById("nomeEscala") ? 'existe' : 'não existe',
+    inputCiclo: document.getElementById("cicloNova") ? 'existe' : 'não existe'
   });
+  console.log('Escalas carregadas:', escalas);
+});
+
+function mostrarAnoCompleto() {
+  // Função removida
+  return;
 }
