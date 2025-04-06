@@ -168,8 +168,13 @@ header button:hover {
 }
 
 .dia.com-anotacao {
-  border: 10px solid var(--primary-color);
-  box-shadow: 0 0 0 4px var(--background-color);
+  border: 4px solid var(--primary-color);
+  box-shadow: 0 0 5px var(--primary-color), 0 0 10px var(--primary-color), 0 0 15px var(--primary-color), 0 0 20px var(--primary-color);
+}
+
+.miniatura-dia.com-anotacao {
+  border: 4px solid var(--primary-color);
+  box-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color), 0 0 40px var(--primary-color);
 }
 
 .modal {
@@ -327,6 +332,9 @@ header button:hover {
   font-size: 0.75rem;
   padding: 2px;
   color: var(--text-primary);
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
 }
 
 .miniatura-dia.trabalho, .miniatura-dia.folga {

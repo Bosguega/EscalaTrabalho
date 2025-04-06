@@ -210,12 +210,6 @@ function atualizarSelectEscalas() {
       option.textContent = escala.nome;
       cicloSelect.appendChild(option);
     });
-
-    // Após as escalas, adicionar opção para gerenciar escalas
-    const gerenciarOption = document.createElement('option');
-    gerenciarOption.value = "gerenciar";
-    gerenciarOption.textContent = "⚙️ Gerenciar Escalas";
-    cicloSelect.appendChild(gerenciarOption);
   } else {
     console.log('Não há escalas para adicionar ao select');
   }
@@ -225,6 +219,12 @@ function atualizarSelectEscalas() {
   criarOption.value = "criar";
   criarOption.textContent = "+ Criar Nova Escala";
   cicloSelect.appendChild(criarOption);
+  
+  // Adicionar a opção para remover escalas
+  const removerOption = document.createElement('option');
+  removerOption.value = "remover";
+  removerOption.textContent = "🗑️ Remover Escala";
+  cicloSelect.appendChild(removerOption);
   
   console.log('Select atualizado com sucesso. Opções:', cicloSelect.options.length);
 }
@@ -274,12 +274,11 @@ function salvarNovaEscala() {
   
   if (!nomeEscala || !cicloNova) {
     console.error('Elementos de formulário não encontrados!');
-    alert('Erro ao salvar escala. Por favor, recarregue a página.');
+    exibirModalAlerta('Erro ao salvar escala. Por favor, recarregue a página.');
     return;
   }
   
   const nomeEscalaValue = nomeEscala.value.trim();
-  // O valor já deve estar filtrado para conter apenas T e F, mas vamos garantir
   const cicloValue = cicloNova.value.toUpperCase().replace(/[^TF]/g, '');
   
   console.log('Nome da escala:', nomeEscalaValue);
@@ -288,59 +287,51 @@ function salvarNovaEscala() {
 
   if (!nomeEscalaValue) {
     console.log('Erro: nome da escala não preenchido');
-    alert("Por favor, preencha o nome da escala.");
+    exibirModalAlerta("Por favor, preencha o nome da escala.");
     return;
   }
 
   if (!cicloValue || cicloValue.length < 2) {
     console.log('Erro: ciclo deve ter pelo menos 2 dias');
-    alert("O ciclo deve ter pelo menos 2 dias com caracteres T ou F.");
+    exibirModalAlerta("O ciclo deve ter pelo menos 2 dias com caracteres T ou F.");
     return;
   }
 
-  // Verificar se já existe uma escala com o mesmo nome
   if (escalas.some(escala => escala.nome === nomeEscalaValue)) {
     console.log('Erro: escala com este nome já existe');
-    alert("Já existe uma escala com este nome. Por favor, escolha outro nome.");
+    exibirModalAlerta("Já existe uma escala com este nome. Por favor, escolha outro nome.");
     return;
   }
 
   const novaEscala = {
     nome: nomeEscalaValue,
-    dataInicial: new Date().toISOString().split('T')[0], // Usar a data atual como padrão
+    dataInicial: new Date().toISOString().split('T')[0],
     ciclo: cicloValue
   };
 
   console.log('Nova escala a ser adicionada:', JSON.stringify(novaEscala));
   
-  // Adicionar a nova escala
   escalas.push(novaEscala);
   console.log('Escalas após adicionar:', JSON.stringify(escalas));
   
-  // Salvar no localStorage
   try {
     localStorage.setItem('escalas', JSON.stringify(escalas));
     console.log('Escalas salvas com sucesso no localStorage');
     
-    // Verificar se as escalas foram realmente salvas
     const escalasVerificacao = localStorage.getItem('escalas');
     console.log('Escalas no localStorage:', escalasVerificacao);
     
-    // Atualizar o select
     atualizarSelectEscalas();
     console.log('Select de escalas atualizado');
     
-    // Fechar modal e limpar campos
     fecharModalNovaEscala();
     
-    // Reabrir o modal de configuração
-    console.log('Reabrindo modal de configuração');
     abrirModal();
     
     console.log('===== Fim da função salvarNovaEscala =====');
   } catch (error) {
     console.error('Erro ao salvar escalas no localStorage:', error);
-    alert('Não foi possível salvar a escala. Verifique se o armazenamento local está disponível.');
+    exibirModalAlerta('Não foi possível salvar a escala. Verifique se o armazenamento local está disponível.');
   }
 }
 
@@ -350,17 +341,17 @@ function aplicarEscala() {
   const cicloValue = cicloSelect.value;
 
   if (!dataInput) {
-    alert("Por favor, selecione uma data inicial.");
+    exibirModalAlerta("Por favor, selecione uma data inicial.");
     return;
   }
 
   if (cicloValue === "") {
-    alert("Por favor, selecione uma escala.");
+    exibirModalAlerta("Por favor, selecione uma escala.");
     return;
   }
 
   if (cicloValue === "criar") {
-    alert("Por favor, crie uma nova escala primeiro.");
+    exibirModalAlerta("Por favor, crie uma nova escala primeiro.");
     return;
   }
 
@@ -407,8 +398,8 @@ document.addEventListener('change', function(event) {
       console.log('Opção de criar nova escala selecionada');
       // Chamar a função dedicada
       handleCriarNovaEscala();
-    } else if (value === "gerenciar") {
-      console.log('Opção de gerenciar escalas selecionada');
+    } else if (value === "remover") {
+      console.log('Opção de remover escala selecionada');
       abrirModalGerenciarEscalas();
     } else if (value !== "") {
       console.log('Escala existente selecionada, índice:', value);
@@ -506,7 +497,9 @@ function renderizarCalendariosAno() {
       
       // Aplicar a cor diretamente no elemento
       const cor = tipo === "trabalho" ? inputCorTrabalho.value : inputCorFolga.value;
-      miniaturaCalendario.innerHTML += `<div class="miniatura-dia ${tipo}" style="background-color: ${cor}">${dia}</div>`;
+      const chaveAnotacao = `${dataAtual.getFullYear()}-${i}-${dia}`;
+      const temAnotacao = localStorage.getItem(chaveAnotacao);
+      miniaturaCalendario.innerHTML += `<div class="miniatura-dia ${tipo} ${temAnotacao ? 'com-anotacao' : ''}" style="background-color: ${cor}" data-dia="${dia}" data-mes="${i}" data-ano="${dataAtual.getFullYear()}">${dia}</div>`;
     }
 
     // Adicionar nome do mês e miniatura
@@ -532,6 +525,18 @@ function renderizarCalendariosAno() {
     
     container.appendChild(mesEl);
   }
+
+  // Adicionar evento de clique para abrir o modal de anotações nos dias do calendário anual
+  const dias = document.querySelectorAll('.miniatura-dia');
+  dias.forEach(diaEl => {
+    diaEl.addEventListener('click', function(event) {
+      event.stopPropagation(); // Impedir que o clique no dia feche o modal do ano
+      const dia = parseInt(diaEl.getAttribute('data-dia'));
+      const mes = parseInt(diaEl.getAttribute('data-mes'));
+      const ano = parseInt(diaEl.getAttribute('data-ano'));
+      abrirModalAnotacao(dia, mes, ano);
+    });
+  });
 }
 
 // Carregar configurações e escalas ao iniciar
@@ -652,32 +657,26 @@ window.addEventListener('load', () => {
 function removerEscala(index) {
   console.log(`Removendo escala de índice ${index}`);
   
-  // Verificar se o índice é válido
   if (index < 0 || index >= escalas.length) {
     console.error(`Índice inválido: ${index}`);
     return false;
   }
   
-  // Obter o nome da escala que será removida
   const nomeEscala = escalas[index].nome;
   
-  // Remover a escala do array
   escalas.splice(index, 1);
   
-  // Salvar o array atualizado no localStorage
   try {
     localStorage.setItem('escalas', JSON.stringify(escalas));
     console.log('Escalas atualizadas no localStorage após remoção');
     
-    // Atualizar o select
     atualizarSelectEscalas();
     
-    // Informar ao usuário
-    alert(`A escala "${nomeEscala}" foi removida com sucesso.`);
+    exibirModalAlerta(`A escala "${nomeEscala}" foi removida com sucesso.`);
     return true;
   } catch (error) {
     console.error('Erro ao salvar escalas após remoção:', error);
-    alert('Não foi possível remover a escala. Tente novamente.');
+    exibirModalAlerta('Não foi possível remover a escala. Tente novamente.');
     return false;
   }
 }
@@ -686,16 +685,13 @@ function removerEscala(index) {
 function abrirModalGerenciarEscalas() {
   console.log('Abrindo modal para gerenciar escalas');
   
-  // Fechar o modal de configuração
   fecharModal();
   
-  // Criar um modal temporário para gerenciar escalas
   const modalGerenciar = document.createElement('div');
   modalGerenciar.className = 'modal';
   modalGerenciar.style.display = 'flex';
   modalGerenciar.id = 'modalGerenciarEscalas';
   
-  // Conteúdo do modal
   modalGerenciar.innerHTML = `
     <div class="modal-content">
       <h3>Gerenciar Escalas</h3>
@@ -708,10 +704,8 @@ function abrirModalGerenciarEscalas() {
     </div>
   `;
   
-  // Adicionar o modal ao DOM
   document.body.appendChild(modalGerenciar);
   
-  // Adicionar as escalas à lista
   const listaEscalas = document.getElementById('listaEscalas');
   if (listaEscalas && escalas.length > 0) {
     escalas.forEach((escala, index) => {
@@ -735,25 +729,22 @@ function abrirModalGerenciarEscalas() {
     });
   }
   
-  // Adicionar event listeners
   document.getElementById('btnFecharGerenciamento').addEventListener('click', function() {
     document.body.removeChild(modalGerenciar);
     abrirModal();
   });
   
-  // Event listener para os botões de remover
   modalGerenciar.addEventListener('click', function(event) {
     if (event.target.closest('.btn-remover')) {
       const botao = event.target.closest('.btn-remover');
       const index = parseInt(botao.getAttribute('data-index'));
       
-      if (confirm(`Tem certeza que deseja remover a escala "${escalas[index].nome}"?`)) {
+      exibirModalConfirmacao(`Tem certeza que deseja remover a escala "${escalas[index].nome}"?`, function() {
         if (removerEscala(index)) {
-          // Se removeu com sucesso, recriar a lista
           document.body.removeChild(modalGerenciar);
           abrirModalGerenciarEscalas();
         }
-      }
+      });
     }
   });
 }
@@ -791,12 +782,84 @@ function abrirModalAnotacao(dia, mes, ano) {
   document.getElementById('btnSalvarAnotacao').addEventListener('click', function() {
     const textoAnotacao = document.getElementById('anotacaoTexto').value;
     localStorage.setItem(chaveAnotacao, textoAnotacao);
-    alert('Anotação salva com sucesso!');
+    exibirModalAlerta('Anotação salva com sucesso!');
     document.body.removeChild(modalAnotacao);
+    
+    // Atualizar o estilo do dia imediatamente
+    const diaEl = document.querySelector(`.miniatura-dia[data-dia='${dia}'][data-mes='${mes}'][data-ano='${ano}']`);
+    if (diaEl) {
+      diaEl.classList.add('com-anotacao');
+    }
+    
+    // Atualizar o calendário completo
+    renderizarCalendariosAno();
+    
+    // Atualizar o calendário mensal
     renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
   });
 
   document.getElementById('btnCancelarAnotacao').addEventListener('click', function() {
     document.body.removeChild(modalAnotacao);
+  });
+}
+
+// Função para exibir um modal de confirmação
+function exibirModalConfirmacao(mensagem, onConfirmar, onCancelar) {
+  const modalConfirmacao = document.createElement('div');
+  modalConfirmacao.className = 'modal';
+  modalConfirmacao.style.display = 'flex';
+  modalConfirmacao.id = 'modalConfirmacao';
+
+  // Conteúdo do modal
+  modalConfirmacao.innerHTML = `
+    <div class="modal-content">
+      <h3>Confirmação</h3>
+      <p>${mensagem}</p>
+      <div class="modal-buttons">
+        <button class="btn-cancelar" id="btnCancelarConfirmacao">Cancelar</button>
+        <button class="btn-salvar" id="btnConfirmar">Confirmar</button>
+      </div>
+    </div>
+  `;
+
+  // Adicionar o modal ao DOM
+  document.body.appendChild(modalConfirmacao);
+
+  // Event listeners para confirmar e cancelar
+  document.getElementById('btnConfirmar').addEventListener('click', function() {
+    onConfirmar();
+    document.body.removeChild(modalConfirmacao);
+  });
+
+  document.getElementById('btnCancelarConfirmacao').addEventListener('click', function() {
+    if (onCancelar) onCancelar();
+    document.body.removeChild(modalConfirmacao);
+  });
+}
+
+// Função para exibir um modal de alerta
+function exibirModalAlerta(mensagem) {
+  const modalAlerta = document.createElement('div');
+  modalAlerta.className = 'modal';
+  modalAlerta.style.display = 'flex';
+  modalAlerta.id = 'modalAlerta';
+
+  // Conteúdo do modal
+  modalAlerta.innerHTML = `
+    <div class="modal-content">
+      <h3>Alerta</h3>
+      <p>${mensagem}</p>
+      <div class="modal-buttons">
+        <button class="btn-salvar" id="btnFecharAlerta">Fechar</button>
+      </div>
+    </div>
+  `;
+
+  // Adicionar o modal ao DOM
+  document.body.appendChild(modalAlerta);
+
+  // Event listener para fechar o alerta
+  document.getElementById('btnFecharAlerta').addEventListener('click', function() {
+    document.body.removeChild(modalAlerta);
   });
 }
