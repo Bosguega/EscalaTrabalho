@@ -113,11 +113,24 @@ function renderizarCalendario(mes, ano) {
     const diasDiferenca = Math.floor((data - dataInicialEscala) / (1000 * 60 * 60 * 24));
     const posicao = ((diasDiferenca % cicloEscala.length) + cicloEscala.length) % cicloEscala.length;
     const tipo = cicloEscala[posicao] === "T" ? "trabalho" : "folga";
-    
+
     // Aplicar a cor diretamente no elemento
     const cor = tipo === "trabalho" ? inputCorTrabalho.value : inputCorFolga.value;
-    calendarioEl.innerHTML += `<div class="dia ${tipo}" style="background-color: ${cor}">${dia}</div>`;
+    const chaveAnotacao = `${ano}-${mes}-${dia}`;
+    const temAnotacao = localStorage.getItem(chaveAnotacao);
+    calendarioEl.innerHTML += `<div class="dia ${tipo} ${temAnotacao ? 'com-anotacao' : ''}" style="background-color: ${cor}" data-dia="${dia}" data-mes="${mes}" data-ano="${ano}">${dia}</div>`;
   }
+
+  // Adicionar evento de clique para abrir o modal de anotações
+  const dias = document.querySelectorAll('.dia');
+  dias.forEach(diaEl => {
+    diaEl.addEventListener('click', function() {
+      const dia = parseInt(diaEl.getAttribute('data-dia'));
+      const mes = parseInt(diaEl.getAttribute('data-mes'));
+      const ano = parseInt(diaEl.getAttribute('data-ano'));
+      abrirModalAnotacao(dia, mes, ano);
+    });
+  });
 }
 
 function mudarMes(delta) {
@@ -352,10 +365,10 @@ function aplicarEscala() {
   }
 
   const escala = escalas[cicloValue];
-  dataInicialEscala = new Date(dataInput);
+    dataInicialEscala = new Date(dataInput);
   cicloEscala = escala.ciclo;
   fecharModal();
-  renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
+    renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
 }
 
 // Função original para abrir o modal de nova escala
@@ -459,7 +472,7 @@ function mostrarAnoCompleto() {
 function renderizarCalendariosAno() {
   const container = document.getElementById("calendarios-container");
   container.innerHTML = "";
-  
+
   for (let i = 0; i < 12; i++) {
     const mesEl = document.createElement("div");
     mesEl.classList.add("mes-item");
@@ -742,5 +755,48 @@ function abrirModalGerenciarEscalas() {
         }
       }
     }
+  });
+}
+
+// Função para abrir o modal de anotações
+function abrirModalAnotacao(dia, mes, ano) {
+  const modalAnotacao = document.createElement('div');
+  modalAnotacao.className = 'modal';
+  modalAnotacao.style.display = 'flex';
+  modalAnotacao.id = 'modalAnotacao';
+
+  // Conteúdo do modal
+  modalAnotacao.innerHTML = `
+    <div class="modal-content">
+      <h3>Anotações para ${dia}/${mes + 1}/${ano}</h3>
+      <textarea id="anotacaoTexto" rows="5" style="width: 100%;"></textarea>
+      <div class="modal-buttons">
+        <button class="btn-salvar" id="btnSalvarAnotacao">Salvar</button>
+        <button class="btn-cancelar" id="btnCancelarAnotacao">Cancelar</button>
+      </div>
+    </div>
+  `;
+
+  // Adicionar o modal ao DOM
+  document.body.appendChild(modalAnotacao);
+
+  // Carregar anotação existente, se houver
+  const chaveAnotacao = `${ano}-${mes}-${dia}`;
+  const anotacaoSalva = localStorage.getItem(chaveAnotacao);
+  if (anotacaoSalva) {
+    document.getElementById('anotacaoTexto').value = anotacaoSalva;
+  }
+
+  // Event listeners para salvar e cancelar
+  document.getElementById('btnSalvarAnotacao').addEventListener('click', function() {
+    const textoAnotacao = document.getElementById('anotacaoTexto').value;
+    localStorage.setItem(chaveAnotacao, textoAnotacao);
+    alert('Anotação salva com sucesso!');
+    document.body.removeChild(modalAnotacao);
+    renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
+  });
+
+  document.getElementById('btnCancelarAnotacao').addEventListener('click', function() {
+    document.body.removeChild(modalAnotacao);
   });
 }

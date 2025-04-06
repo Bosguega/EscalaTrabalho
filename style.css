@@ -167,6 +167,11 @@ header button:hover {
   border: none;
 }
 
+.dia.com-anotacao {
+  border: 10px solid var(--primary-color);
+  box-shadow: 0 0 0 4px var(--background-color);
+}
+
 .modal {
   position: fixed;
   inset: 0;
@@ -1088,4 +1093,38 @@ html {
     border-radius: 20px;
     min-width: 40px;
   }
+}
+
+#modalAnotacao .modal-content {
+  display: flex;
+  flex-direction: column;
+}
+
+#modalAnotacao .modal-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+#modalAnotacao .btn-cancelar {
+  order: 1;
+}
+
+#modalAnotacao .btn-salvar {
+  order: 2;
+}
+
+#modalAnotacao textarea {
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 1rem;
+  width: 100%;
+  resize: none;
+  margin-bottom: 20px;
+}
+
+#modalAnotacao textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
 }
