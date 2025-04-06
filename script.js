@@ -150,7 +150,15 @@ function renderizarCalendario(mes, ano) {
 
   for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
     const data = new Date(ano, mes, dia);
-    const diasDiferenca = Math.floor((data - dataInicialEscala) / (1000 * 60 * 60 * 24));
+    
+    // Corrigir o cálculo da diferença de dias
+    // Usando setHours(0,0,0,0) para garantir que estamos comparando apenas datas, sem horas
+    const dataAtualMS = new Date(ano, mes, dia).setHours(0,0,0,0);
+    const dataInicialMS = new Date(dataInicialEscala).setHours(0,0,0,0);
+    const diasDiferenca = Math.floor((dataAtualMS - dataInicialMS) / (1000 * 60 * 60 * 24));
+    
+    // Corrigir o cálculo do índice no ciclo
+    // Garantir que diasDiferenca nunca seja negativo usando módulo
     const posicao = ((diasDiferenca % cicloEscala.length) + cicloEscala.length) % cicloEscala.length;
     const tipo = cicloEscala[posicao] === "T" ? "trabalho" : "folga";
 
@@ -420,8 +428,16 @@ function salvarNovaEscala() {
 
 // Função para salvar a escala aplicada
 function salvarEscalaAplicada() {
+  // Criar uma cópia da data para garantir que informações de hora não afetem o cálculo
+  const dataInicial = new Date(
+    dataInicialEscala.getFullYear(),
+    dataInicialEscala.getMonth(),
+    dataInicialEscala.getDate()
+  );
+  dataInicial.setHours(0, 0, 0, 0);
+
   const escalaAplicada = {
-    dataInicial: dataInicialEscala.toISOString(),
+    dataInicial: dataInicial.toISOString().split('T')[0], // Formato YYYY-MM-DD
     cicloEscala: cicloEscala
   };
   
@@ -440,9 +456,24 @@ function carregarEscalaAplicada() {
     
     if (escalaAplicadaSalva) {
       const escalaAplicada = JSON.parse(escalaAplicadaSalva);
-      dataInicialEscala = new Date(escalaAplicada.dataInicial);
+      
+      // Corrigir a criação da data inicial a partir da string ISO
+      const dataISO = escalaAplicada.dataInicial;
+      const dataObj = new Date(dataISO);
+      
+      // Criar nova data apenas com ano, mês e dia
+      dataInicialEscala = new Date(
+        dataObj.getFullYear(),
+        dataObj.getMonth(),
+        dataObj.getDate()
+      );
+      
+      // Garantir que não haja informações de hora que podem afetar o cálculo
+      dataInicialEscala.setHours(0, 0, 0, 0);
+      
       cicloEscala = escalaAplicada.cicloEscala;
       console.log('Escala aplicada carregada do localStorage', escalaAplicada);
+      console.log('Data inicial configurada para:', dataInicialEscala.toISOString());
     }
   } catch (error) {
     console.error('Erro ao carregar escala aplicada:', error);
@@ -470,7 +501,22 @@ function aplicarEscala() {
   }
 
   const escala = escalas[cicloValue];
-  dataInicialEscala = new Date(dataInput);
+  
+  // Corrigir a criação da data inicial
+  // Dividir a string da data em [ano, mês, dia]
+  const dataParts = dataInput.split('-');
+  
+  // Criar uma nova data usando o construtor Date(ano, mês, dia)
+  // OBS: No JavaScript, os meses são indexados de 0 a 11, por isso subtraímos 1 do mês
+  dataInicialEscala = new Date(
+    parseInt(dataParts[0]),      // ano
+    parseInt(dataParts[1]) - 1,  // mês (0-11)
+    parseInt(dataParts[2])       // dia
+  );
+  
+  // Garantir que não haja informações de hora que podem afetar o cálculo
+  dataInicialEscala.setHours(0, 0, 0, 0);
+  
   cicloEscala = escala.ciclo;
   
   // Salvar a escala aplicada
@@ -521,13 +567,15 @@ document.addEventListener('change', function(event) {
       abrirModalGerenciarEscalas();
     } else if (value !== "") {
       console.log('Escala existente selecionada, índice:', value);
-      // Preencher a data inicial com a da escala selecionada (opcional)
+      // NÃO preencher a data inicial com a da escala selecionada
+      // Manter a data que o usuário escolheu anteriormente
       try {
         const escala = escalas[parseInt(value)];
         console.log('Escala selecionada:', JSON.stringify(escala));
-        if (escala && escala.dataInicial) {
-          document.getElementById("dataInicial").value = escala.dataInicial;
-        }
+        // A linha abaixo foi removida para não sobrescrever a data escolhida pelo usuário
+        // if (escala && escala.dataInicial) {
+        //   document.getElementById("dataInicial").value = escala.dataInicial;
+        // }
       } catch (error) {
         console.error('Erro ao processar escala selecionada:', error);
       }
@@ -535,12 +583,17 @@ document.addEventListener('change', function(event) {
   }
 });
 
-// Função para abrir o modal de anotações
+// Modificar a função abrirModalAnotacao para adicionar botão de remover anotação
 function abrirModalAnotacao(dia, mes, ano) {
   const modalAnotacao = document.createElement('div');
   modalAnotacao.className = 'modal';
   modalAnotacao.style.display = 'flex';
   modalAnotacao.id = 'modalAnotacao';
+
+  // Verificar se já existe uma anotação
+  const chaveAnotacao = `${ano}-${mes}-${dia}`;
+  const anotacaoSalva = localStorage.getItem(chaveAnotacao);
+  const temAnotacao = anotacaoSalva && anotacaoSalva.trim() !== '';
 
   // Conteúdo do modal
   modalAnotacao.innerHTML = `
@@ -549,6 +602,7 @@ function abrirModalAnotacao(dia, mes, ano) {
       <textarea id="anotacaoTexto" rows="5" style="width: 100%;"></textarea>
       <div class="modal-buttons">
         <button class="btn-cancelar" id="btnCancelarAnotacao">Cancelar</button>
+        ${temAnotacao ? '<button class="btn-remover" id="btnRemoverAnotacao">Remover</button>' : ''}
         <button class="btn-salvar" id="btnSalvarAnotacao">Salvar</button>
       </div>
     </div>
@@ -558,8 +612,6 @@ function abrirModalAnotacao(dia, mes, ano) {
   document.body.appendChild(modalAnotacao);
 
   // Carregar anotação existente, se houver
-  const chaveAnotacao = `${ano}-${mes}-${dia}`;
-  const anotacaoSalva = localStorage.getItem(chaveAnotacao);
   if (anotacaoSalva) {
     document.getElementById('anotacaoTexto').value = anotacaoSalva;
   }
@@ -567,17 +619,57 @@ function abrirModalAnotacao(dia, mes, ano) {
   // Event listeners para salvar e cancelar
   document.getElementById('btnSalvarAnotacao').addEventListener('click', function() {
     const textoAnotacao = document.getElementById('anotacaoTexto').value;
-    localStorage.setItem(chaveAnotacao, textoAnotacao);
-    exibirModalAlerta('Anotação salva com sucesso!');
+    if (textoAnotacao.trim() === '') {
+      // Se o campo estiver vazio, remover a anotação
+      localStorage.removeItem(chaveAnotacao);
+      exibirModalAlerta('Anotação removida com sucesso!');
+    } else {
+      // Salvar a anotação
+      localStorage.setItem(chaveAnotacao, textoAnotacao);
+      exibirModalAlerta('Anotação salva com sucesso!');
+    }
     document.body.removeChild(modalAnotacao);
     
     // Atualizar o calendário mensal
     renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
+    
+    // Atualizar o calendário anual, se estiver aberto
+    const modalAnoCompleto = document.getElementById('modalAnoCompleto');
+    if (modalAnoCompleto) {
+      const anoSelector = document.getElementById('anoSelector');
+      if (anoSelector) {
+        renderizarCalendarioAnual(parseInt(anoSelector.value));
+      }
+    }
   });
 
   document.getElementById('btnCancelarAnotacao').addEventListener('click', function() {
     document.body.removeChild(modalAnotacao);
   });
+  
+  // Event listener para remover anotação, se o botão existir
+  const btnRemoverAnotacao = document.getElementById('btnRemoverAnotacao');
+  if (btnRemoverAnotacao) {
+    btnRemoverAnotacao.addEventListener('click', function() {
+      exibirModalConfirmacao('Tem certeza que deseja remover esta anotação?', function() {
+        localStorage.removeItem(chaveAnotacao);
+        exibirModalAlerta('Anotação removida com sucesso!');
+        document.body.removeChild(modalAnotacao);
+        
+        // Atualizar o calendário mensal
+        renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
+        
+        // Atualizar o calendário anual, se estiver aberto
+        const modalAnoCompleto = document.getElementById('modalAnoCompleto');
+        if (modalAnoCompleto) {
+          const anoSelector = document.getElementById('anoSelector');
+          if (anoSelector) {
+            renderizarCalendarioAnual(parseInt(anoSelector.value));
+          }
+        }
+      });
+    });
+  }
 }
 
 // Função para exibir um modal de confirmação
@@ -853,6 +945,176 @@ window.addEventListener('load', () => {
 });
 
 function mostrarAnoCompleto() {
-  // Função removida
-  return;
+  // Salvar mês e ano atual para retornar depois
+  const mesOriginal = dataAtual.getMonth();
+  const anoOriginal = dataAtual.getFullYear();
+  
+  // Criar modal do calendário anual
+  const modalAnoCompleto = document.createElement('div');
+  modalAnoCompleto.className = 'modal';
+  modalAnoCompleto.style.display = 'flex';
+  modalAnoCompleto.id = 'modalAnoCompleto';
+  
+  // Criar seletor de anos (30 anos antes e 30 anos depois do ano atual)
+  const anoAtual = dataAtual.getFullYear();
+  let opcoesAnos = '';
+  for (let i = anoAtual - 30; i <= anoAtual + 30; i++) {
+    opcoesAnos += `<option value="${i}" ${i === anoAtual ? 'selected' : ''}>${i}</option>`;
+  }
+  
+  // Conteúdo do modal
+  modalAnoCompleto.innerHTML = `
+    <div class="modal-content modal-ano-completo">
+      <div class="ano-header">
+        <button class="btn-navegacao" id="btnAnoAnterior">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <select id="anoSelector" class="ano-selector">
+          ${opcoesAnos}
+        </select>
+        <button class="btn-navegacao" id="btnAnoProximo">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+      <div class="calendario-anual-container" id="calendarioAnual"></div>
+      <div class="modal-buttons">
+        <button class="btn-cancelar" id="btnFecharAnoCompleto">Voltar</button>
+      </div>
+    </div>
+  `;
+  
+  // Adicionar o modal ao DOM
+  document.body.appendChild(modalAnoCompleto);
+  
+  // Renderizar o calendário anual
+  renderizarCalendarioAnual(anoAtual);
+  
+  // Event listeners
+  document.getElementById('btnFecharAnoCompleto').addEventListener('click', function() {
+    // Restaurar mês e ano originais
+    dataAtual.setMonth(mesOriginal);
+    dataAtual.setFullYear(anoOriginal);
+    
+    // Fechar o modal
+    document.body.removeChild(modalAnoCompleto);
+  });
+  
+  document.getElementById('btnAnoAnterior').addEventListener('click', function() {
+    const anoSelector = document.getElementById('anoSelector');
+    anoSelector.value = parseInt(anoSelector.value) - 1;
+    renderizarCalendarioAnual(parseInt(anoSelector.value));
+  });
+  
+  document.getElementById('btnAnoProximo').addEventListener('click', function() {
+    const anoSelector = document.getElementById('anoSelector');
+    anoSelector.value = parseInt(anoSelector.value) + 1;
+    renderizarCalendarioAnual(parseInt(anoSelector.value));
+  });
+  
+  document.getElementById('anoSelector').addEventListener('change', function() {
+    renderizarCalendarioAnual(parseInt(this.value));
+  });
+}
+
+// Função para renderizar o calendário anual
+function renderizarCalendarioAnual(ano) {
+  const container = document.getElementById("calendarioAnual");
+  if (!container) return;
+  
+  // Atualizar o seletor de ano, se necessário
+  const anoSelector = document.getElementById('anoSelector');
+  if (anoSelector && anoSelector.value != ano) {
+    anoSelector.value = ano;
+  }
+  
+  // Limpar container
+  container.innerHTML = "";
+  
+  // Renderizar cada mês
+  for (let mes = 0; mes < 12; mes++) {
+    const mesContainer = document.createElement('div');
+    mesContainer.className = 'mes-container';
+    
+    // Criar cabeçalho do mês
+    const mesHeader = document.createElement('div');
+    mesHeader.className = 'mes-header';
+    mesHeader.textContent = new Date(ano, mes, 1).toLocaleDateString('pt-BR', { month: 'long' });
+    mesContainer.appendChild(mesHeader);
+    
+    // Criar grid do calendário
+    const mesGrid = document.createElement('div');
+    mesGrid.className = 'mes-grid';
+    
+    // Adicionar dias da semana
+    const diasSemana = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+    diasSemana.forEach(dia => {
+      const diaSemanaEl = document.createElement('div');
+      diaSemanaEl.className = 'dia-semana-mini';
+      diaSemanaEl.textContent = dia;
+      mesGrid.appendChild(diaSemanaEl);
+    });
+    
+    // Calcular dias do mês
+    const primeiroDia = new Date(ano, mes, 1);
+    const ultimoDia = new Date(ano, mes + 1, 0);
+    const diaSemanaInicio = primeiroDia.getDay();
+    
+    // Adicionar dias vazios no início
+    for (let i = 0; i < diaSemanaInicio; i++) {
+      const diaVazio = document.createElement('div');
+      diaVazio.className = 'dia-mini vazio';
+      mesGrid.appendChild(diaVazio);
+    }
+    
+    // Adicionar os dias do mês
+    for (let dia = 1; dia <= ultimoDia.getDate(); dia++) {
+      const diaEl = document.createElement('div');
+      diaEl.className = 'dia-mini';
+      diaEl.textContent = dia;
+      
+      // Definir tipo (trabalho/folga) e cor
+      const data = new Date(ano, mes, dia);
+      
+      // Corrigir o cálculo da diferença de dias
+      const dataAtualMS = new Date(ano, mes, dia).setHours(0,0,0,0);
+      const dataInicialMS = new Date(dataInicialEscala).setHours(0,0,0,0);
+      const diasDiferenca = Math.floor((dataAtualMS - dataInicialMS) / (1000 * 60 * 60 * 24));
+      
+      // Corrigir o cálculo do índice no ciclo
+      const posicao = ((diasDiferenca % cicloEscala.length) + cicloEscala.length) % cicloEscala.length;
+      const tipo = cicloEscala[posicao] === "T" ? "trabalho" : "folga";
+      const cor = tipo === "trabalho" ? inputCorTrabalho.value : inputCorFolga.value;
+      
+      // Verificar se tem anotação
+      const chaveAnotacao = `${ano}-${mes}-${dia}`;
+      const temAnotacao = localStorage.getItem(chaveAnotacao);
+      
+      // Aplicar classes e estilos
+      diaEl.classList.add(tipo);
+      if (temAnotacao) diaEl.classList.add('com-anotacao');
+      diaEl.style.backgroundColor = cor;
+      diaEl.setAttribute('data-dia', dia);
+      diaEl.setAttribute('data-mes', mes);
+      diaEl.setAttribute('data-ano', ano);
+      
+      // Adicionar evento de clique para abrir o modal de anotações
+      diaEl.addEventListener('click', function(event) {
+        event.stopPropagation();
+        abrirModalAnotacao(dia, mes, ano);
+      });
+      
+      mesGrid.appendChild(diaEl);
+    }
+    
+    // Adicionar evento de clique para selecionar o mês
+    mesContainer.addEventListener('click', function() {
+      dataAtual.setMonth(mes);
+      dataAtual.setFullYear(ano);
+      renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
+      document.body.removeChild(document.getElementById('modalAnoCompleto'));
+    });
+    
+    mesContainer.appendChild(mesGrid);
+    container.appendChild(mesContainer);
+  }
 }

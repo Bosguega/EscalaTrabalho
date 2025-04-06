@@ -1188,3 +1188,191 @@ html {
   font-size: 1.2rem;
   color: var(--text-secondary);
 }
+
+/* Estilos para o modal do calendário anual */
+.modal-ano-completo {
+  width: 95%;
+  max-width: 1200px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 24px;
+  position: relative;
+  top: 0;
+}
+
+.ano-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 0;
+  margin-bottom: 20px;
+}
+
+.ano-header h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.calendario-anual-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+}
+
+.mes-container {
+  display: flex;
+  flex-direction: column;
+  background-color: var(--surface-color);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow-sm);
+}
+
+.mes-container:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+
+.mes-header {
+  padding: 8px 12px;
+  background-color: var(--primary-color);
+  color: white;
+  text-transform: capitalize;
+  text-align: center;
+  font-weight: 600;
+}
+
+.mes-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  padding: 8px;
+}
+
+.dia-semana-mini {
+  text-align: center;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 0;
+  color: var(--text-secondary);
+}
+
+.dia-mini {
+  aspect-ratio: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.75rem;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.dia-mini.vazio {
+  background-color: transparent;
+}
+
+.dia-mini.com-anotacao {
+  border: 4px solid var(--primary-color);
+  box-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color), 0 0 40px var(--primary-color);
+}
+
+/* Responsividade */
+@media (max-width: 1100px) {
+  .calendario-anual-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .calendario-anual-container {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  
+  .modal-ano-completo {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .calendario-anual-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .mes-container {
+    max-width: 100%;
+  }
+  
+  .dia-mini {
+    font-size: 0.7rem;
+  }
+  
+  .modal-ano-completo {
+    padding: 8px;
+  }
+}
+
+#modalAnotacao .btn-remover {
+  background-color: #ef4444;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 0 10px;
+  font-weight: 500;
+}
+
+#modalAnotacao .btn-remover:hover {
+  background-color: #dc2626;
+  transform: translateY(-1px);
+}
+
+#modalAnotacao .btn-remover:active {
+  transform: translateY(1px);
+}
+
+.ano-selector {
+  padding: 8px 16px;
+  font-size: 1.25rem;
+  font-weight: 600;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background-color: var(--surface-color);
+  color: var(--text-primary);
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%231e293b' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  background-size: 16px;
+  padding-right: 32px;
+  text-align: center;
+  width: 160px;
+  transition: all 0.2s ease;
+}
+
+.ano-selector:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+body.tema-escuro .ano-selector {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+@media (max-width: 480px) {
+  .ano-selector {
+    font-size: 1rem;
+    padding: 8px 12px;
+    padding-right: 28px;
+    width: 120px;
+  }
+}
