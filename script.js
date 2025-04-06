@@ -34,6 +34,50 @@ let escalas = [];
 let mesOriginal = 0;
 let anoOriginal = 0;
 
+// Adicionar ícones de tema lado a lado
+const temaIconeClaro = document.createElement('span');
+temaIconeClaro.className = 'tema-icone';
+temaIconeClaro.innerHTML = '⚪'; // Ícone de círculo claro
+
+const temaIconeEscuro = document.createElement('span');
+temaIconeEscuro.className = 'tema-icone';
+temaIconeEscuro.innerHTML = '⚫'; // Ícone de círculo escuro
+
+const separador = document.createElement('span');
+separador.className = 'tema-separador';
+separador.innerHTML = ' / ';
+
+const temaContainer = document.createElement('div');
+temaContainer.className = 'tema-container';
+temaContainer.appendChild(temaIconeClaro);
+temaContainer.appendChild(separador);
+temaContainer.appendChild(temaIconeEscuro);
+
+botaoTrabalho.parentElement.insertBefore(temaContainer, botaoTrabalho);
+
+// Carregar tema salvo
+function carregarTema() {
+  const temaSalvo = localStorage.getItem('tema');
+  if (temaSalvo === 'escuro') {
+    document.body.classList.add('tema-escuro');
+  }
+}
+
+// Alternar tema
+function alternarTema() {
+  document.body.classList.toggle('tema-escuro');
+  if (document.body.classList.contains('tema-escuro')) {
+    localStorage.setItem('tema', 'escuro');
+  } else {
+    localStorage.setItem('tema', 'claro');
+  }
+}
+
+temaContainer.addEventListener('click', alternarTema);
+
+// Carregar tema ao iniciar
+carregarTema();
+
 // Carregar configurações salvas
 function carregarConfiguracoes() {
   const configSalva = localStorage.getItem('configuracoes');

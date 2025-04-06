@@ -14,6 +14,15 @@
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
 }
 
+body.tema-escuro {
+  --background-color: #121212;
+  --surface-color: #1e1e1e;
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0b0;
+  --border-color: #333333;
+  --primary-color: #bb86fc;
+}
+
 * {
   margin: 0;
   padding: 0;
@@ -823,6 +832,21 @@ html {
   .calendarios-container {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .botoes-acao {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .legendas {
+    flex-direction: row;
+    justify-content: space-between;
+  }
+
+  .legenda-item {
+    flex-direction: row;
+    align-items: center;
+  }
 }
 
 .ano-modal {
@@ -977,6 +1001,8 @@ html {
   font-size: 1.25rem;
   font-weight: 600;
   text-transform: capitalize;
+  margin: 0 auto;
+  text-align: center;
 }
 
 .navegacao-mes button {
@@ -1006,15 +1032,14 @@ html {
   }
   
   .botoes-acao {
-    flex-direction: column;
-    width: 100%;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 8px;
   }
   
   .btn-configurar, .btn-ano-completo {
-    width: 100%;
-    justify-content: center;
-    min-height: 44px;
-    touch-action: manipulation;
+    flex: 1;
+    min-width: 0;
   }
   
   .navegacao-mes {
@@ -1136,4 +1161,21 @@ html {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.tema-container {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  margin-left: 0;
+  margin-right: auto;
+}
+
+.tema-icone {
+  font-size: 1.2rem;
+}
+
+.tema-separador {
+  font-size: 1.2rem;
+  color: var(--text-secondary);
 }
