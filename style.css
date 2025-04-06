@@ -196,6 +196,8 @@ header button:hover {
   max-width: 400px;
   box-shadow: var(--shadow-lg);
   animation: modalSlideIn 0.3s ease;
+  position: relative;
+  top: -20vh;
 }
 
 @keyframes modalSlideIn {
@@ -272,10 +274,10 @@ header button:hover {
 
 #calendarios-container {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 16px;
-  margin-top: 15px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
   padding: 10px;
+  box-sizing: border-box;
 }
 
 .mes-item {
@@ -400,8 +402,7 @@ html {
   }
   
   #calendarios-container {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    grid-template-columns: 1fr;
   }
   
   .miniatura-calendario {
@@ -417,6 +418,7 @@ html {
     max-width: none;
     margin: 10px;
     padding: 20px;
+    top: -15vh;
   }
 
   .modal-content input {
@@ -819,8 +821,7 @@ html {
   }
 
   .calendarios-container {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 

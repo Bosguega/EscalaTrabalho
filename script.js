@@ -671,8 +671,6 @@ function removerEscala(index) {
     console.log('Escalas atualizadas no localStorage após remoção');
     
     atualizarSelectEscalas();
-    
-    exibirModalAlerta(`A escala "${nomeEscala}" foi removida com sucesso.`);
     return true;
   } catch (error) {
     console.error('Erro ao salvar escalas após remoção:', error);
