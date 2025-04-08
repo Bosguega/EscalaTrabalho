@@ -51,6 +51,46 @@ body {
   gap: 20px;
 }
 
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--surface-color);
+  box-shadow: var(--shadow-md);
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.app-name {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.menu-toggle {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  transition: transform 0.2s ease;
+}
+
+.menu-toggle:hover {
+  transform: scale(1.1);
+}
+
+.menu-toggle svg {
+  stroke: var(--text-primary);
+}
+
+body.tema-escuro .menu-toggle svg {
+  stroke: #ffffff;
+}
+
 header {
   display: flex;
   justify-content: space-between;
@@ -134,11 +174,11 @@ header button:hover {
 }
 
 .calendario-mes-anterior {
-  transform: translateX(-100%);
+  transform: translateX(100%);
 }
 
 .calendario-proximo-mes {
-  transform: translateX(100%);
+  transform: translateX(-100%);
 }
 
 .dia-semana {
@@ -1375,4 +1415,52 @@ body.tema-escuro .ano-selector {
     padding-right: 28px;
     width: 120px;
   }
+}
+
+.sidebar {
+  position: fixed;
+  top: 0;
+  right: -250px;
+  width: 250px;
+  height: 100%;
+  background-color: var(--surface-color);
+  box-shadow: var(--shadow-lg);
+  transition: right 0.3s ease;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  padding: 20px;
+}
+
+.sidebar.open {
+  right: 0;
+}
+
+.close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  align-self: flex-end;
+  margin-bottom: 20px;
+}
+
+.sidebar-nav ul {
+  list-style: none;
+  padding: 0;
+}
+
+.sidebar-nav li {
+  margin-bottom: 10px;
+}
+
+.sidebar-nav a {
+  text-decoration: none;
+  color: var(--text-primary);
+  font-size: 1rem;
+  transition: color 0.2s ease;
+}
+
+.sidebar-nav a:hover {
+  color: var(--primary-color);
 }

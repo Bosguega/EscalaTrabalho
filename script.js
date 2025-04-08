@@ -30,26 +30,35 @@ const CORES_PADRAO = {
 // Estrutura para armazenar as escalas
 let escalas = [];
 
-// Adicionar ícones de tema lado a lado
-const temaIconeClaro = document.createElement('span');
-temaIconeClaro.className = 'tema-icone';
-temaIconeClaro.innerHTML = '⚪'; // Ícone de círculo claro
+document.addEventListener('DOMContentLoaded', () => {
+  // Existing code...
 
-const temaIconeEscuro = document.createElement('span');
-temaIconeEscuro.className = 'tema-icone';
-temaIconeEscuro.innerHTML = '⚫'; // Ícone de círculo escuro
+  // Move theme icon creation here
+  const temaIconeClaro = document.createElement('span');
+  temaIconeClaro.className = 'tema-icone';
+  temaIconeClaro.innerHTML = '⚪'; // Ícone de círculo claro
 
-const separador = document.createElement('span');
-separador.className = 'tema-separador';
-separador.innerHTML = ' / ';
+  const temaIconeEscuro = document.createElement('span');
+  temaIconeEscuro.className = 'tema-icone';
+  temaIconeEscuro.innerHTML = '⚫'; // Ícone de círculo escuro
 
-const temaContainer = document.createElement('div');
-temaContainer.className = 'tema-container';
-temaContainer.appendChild(temaIconeClaro);
-temaContainer.appendChild(separador);
-temaContainer.appendChild(temaIconeEscuro);
+  const separador = document.createElement('span');
+  separador.className = 'tema-separador';
+  separador.innerHTML = ' / ';
 
-botaoTrabalho.parentElement.insertBefore(temaContainer, botaoTrabalho);
+  const temaContainer = document.createElement('div');
+  temaContainer.className = 'tema-container';
+  temaContainer.appendChild(temaIconeClaro);
+  temaContainer.appendChild(separador);
+  temaContainer.appendChild(temaIconeEscuro);
+
+  botaoTrabalho.parentElement.insertBefore(temaContainer, botaoTrabalho);
+
+  // Add event listener for theme toggle
+  temaContainer.addEventListener('click', alternarTema);
+
+  // Existing code...
+});
 
 // Carregar tema salvo
 function carregarTema() {
@@ -68,8 +77,6 @@ function alternarTema() {
     localStorage.setItem('tema', 'claro');
   }
 }
-
-temaContainer.addEventListener('click', alternarTema);
 
 // Carregar tema ao iniciar
 carregarTema();
@@ -196,11 +203,11 @@ function finalizarArrasto(event) {
   const diffX = endX - startX;
 
   if (diffX > 50) {
-    // Arrastou para a direita, mês anterior
-    mudarMes(-1);
-  } else if (diffX < -50) {
-    // Arrastou para a esquerda, próximo mês
+    // Arrastou para a direita, próximo mês
     mudarMes(1);
+  } else if (diffX < -50) {
+    // Arrastou para a esquerda, mês anterior
+    mudarMes(-1);
   }
 }
 
@@ -901,6 +908,21 @@ document.addEventListener('DOMContentLoaded', () => {
   console.log('Calendário renderizado');
   
   console.log('Inicialização concluída');
+
+  const menuToggle = document.querySelector('.menu-toggle');
+  const sidebar = document.getElementById('sidebar');
+  const closeSidebar = document.getElementById('closeSidebar');
+  const temaContainer = document.querySelector('.tema-container');
+
+  menuToggle.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+  });
+
+  closeSidebar.addEventListener('click', () => {
+    sidebar.classList.remove('open');
+  });
+
+  temaContainer.addEventListener('click', alternarTema);
 });
 
 // Verificação adicional para debug
@@ -1029,7 +1051,7 @@ function renderizarCalendarioAnual(ano) {
   
   // Limpar container
   container.innerHTML = "";
-  
+
   // Renderizar cada mês
   for (let mes = 0; mes < 12; mes++) {
     const mesContainer = document.createElement('div');
