@@ -922,6 +922,16 @@ document.addEventListener('DOMContentLoaded', () => {
     sidebar.classList.remove('open');
   });
 
+  // Fecha a sidebar ao clicar fora dela
+   document.addEventListener('click', (event) => {
+    const isClickInsideSidebar = sidebar.contains(event.target);
+    const isClickOnToggle = menuToggle.contains(event.target);
+
+    if (!isClickInsideSidebar && !isClickOnToggle) {
+      sidebar.classList.remove('open');
+    }
+   });
+
   temaContainer.addEventListener('click', alternarTema);
 });
 
