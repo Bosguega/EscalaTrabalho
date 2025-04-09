@@ -16,7 +16,7 @@ const cicloSelect = document.getElementById("cicloSelect");
 const anoAtualEl = document.getElementById("anoAtual");
 
 let dataAtual = new Date();
-let dataInicialEscala = new Date();
+let dataInicialEscala ;
 let cicloEscala = "TTFF";
 let corTrabalho = "#22c55e";
 let corFolga = "#f59e0b";
@@ -57,7 +57,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Add event listener for theme toggle
   temaContainer.addEventListener('click', alternarTema);
 
-  // Existing code...
 });
 
 // Carregar tema salvo
@@ -439,7 +438,7 @@ function salvarEscalaAplicada() {
   dataInicial.setHours(0, 0, 0, 0);
 
   const escalaAplicada = {
-    dataInicial: dataInicial.toISOString().split('T')[0], // Formato YYYY-MM-DD
+    dataInicial: `${dataInicial.getFullYear()}-${String(dataInicial.getMonth() + 1).padStart(2, '0')}-${String(dataInicial.getDate()).padStart(2, '0')}`,
     cicloEscala: cicloEscala
   };
   
@@ -464,13 +463,9 @@ function carregarEscalaAplicada() {
       const dataObj = new Date(dataISO);
       
       // Criar nova data apenas com ano, mês e dia
-      dataInicialEscala = new Date(
-        dataObj.getFullYear(),
-        dataObj.getMonth(),
-        dataObj.getDate()
-      );
-      
-      // Garantir que não haja informações de hora que podem afetar o cálculo
+      const [ano, mes, dia] = escalaAplicada.dataInicial.split('-').map(Number);
+      // Criar a data corretamente no horário local (meses começam do zero)
+      dataInicialEscala = new Date(ano, mes - 1, dia);
       dataInicialEscala.setHours(0, 0, 0, 0);
       
       cicloEscala = escalaAplicada.cicloEscala;
@@ -897,6 +892,7 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Carregar escala aplicada
   carregarEscalaAplicada();
+  console.log("Data inicial real definida:", dataInicialEscala);
   
   // Renderizar calendário
   renderizarCalendario(dataAtual.getMonth(), dataAtual.getFullYear());
