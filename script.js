@@ -243,11 +243,6 @@ function abrirModal() {
   // Atualizar o select de escalas para garantir que está com os dados atualizados
   atualizarSelectEscalas();
   
-  // Garantir que a data inicial tenha um valor padrão, se estiver vazia
-  const dataInput = document.getElementById("dataInicial");
-  if (dataInput && !dataInput.value) {
-    dataInput.value = new Date().toISOString().split('T')[0]; // Define a data atual como padrão
-  }
   
   // Exibir o modal
   modalEl.style.display = "flex";
